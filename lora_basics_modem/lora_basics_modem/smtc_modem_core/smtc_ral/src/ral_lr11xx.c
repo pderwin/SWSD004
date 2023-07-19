@@ -951,7 +951,10 @@ ral_status_t ral_lr11xx_set_gfsk_sync_word( const void* context, const uint8_t* 
 
 ral_status_t ral_lr11xx_set_lora_sync_word( const void* context, const uint8_t sync_word )
 {
-    return ( ral_status_t ) lr11xx_radio_set_lora_sync_word( context, sync_word );
+//    return ( ral_status_t ) lr11xx_radio_set_lora_sync_word( context, sync_word );
+
+    return ( ral_status_t ) lr11xx_radio_set_lora_public_network( context, 1 );
+
 }
 
 ral_status_t ral_lr11xx_set_flrc_sync_word( const void* context, const uint8_t* sync_word, const uint8_t sync_word_len )
