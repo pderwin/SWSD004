@@ -82,7 +82,9 @@ extern smtc_modem_services_t smtc_modem_services_ctx;
  * \param [IN] b 2nd value
  * \retval minValue Minimum value
  */
+#ifndef MIN
 #define MIN( a, b ) ( ( ( a ) < ( b ) ) ? ( a ) : ( b ) )
+#endif
 
 /**
  * @brief Math Abs macro

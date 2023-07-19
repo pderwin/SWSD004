@@ -40,6 +40,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "lr11xx_hal.h"
 #include "lr11xx_system.h"
 #include "lr11xx_radio.h"
 #include "lr11xx_regmem.h"
@@ -446,7 +447,14 @@ ral_status_t ral_lr11xx_set_sleep( const void* context, const bool retain_config
         return status;
     }
 
-    return ( ral_status_t ) lr11xx_system_set_sleep( context, radio_sleep_cfg, 0 );
+    status = lr11xx_system_set_sleep( context, radio_sleep_cfg, 0 );
+
+    /*
+     * Once we're in sleep, we have to wiggle CS to wake the device up.
+     */
+    lr11xx_hal_set_operating_mode( context, LR11XX_HAL_OP_MODE_SLEEP);
+
+    return status;
 }
 
 ral_status_t ral_lr11xx_set_standby( const void* context, ral_standby_cfg_t ral_standby_cfg )

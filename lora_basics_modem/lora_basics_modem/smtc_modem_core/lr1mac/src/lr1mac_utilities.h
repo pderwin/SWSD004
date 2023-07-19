@@ -59,7 +59,9 @@ extern "C" {
  * \param [IN] b 2nd value
  * \retval minValue Minimum value
  */
+#ifndef MIN
 #define MIN( a, b ) ( ( ( a ) < ( b ) ) ? ( a ) : ( b ) )
+#endif
 
 /*!
  * \brief Returns the maximum value between a and b
@@ -68,7 +70,9 @@ extern "C" {
  * \param [IN] b 2nd value
  * \retval maxValue Maximum value
  */
+#ifndef MAX
 #define MAX( a, b ) ( ( ( a ) > ( b ) ) ? ( a ) : ( b ) )
+#endif
 
 /**
  * @brief Math Abs macro

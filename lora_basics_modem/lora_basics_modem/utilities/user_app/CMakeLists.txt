@@ -1,0 +1,3 @@
+add_subdirectory(radio_hal)
+add_subdirectory(smtc_hal_l4)
+add_subdirectory(smtc_modem_hal)

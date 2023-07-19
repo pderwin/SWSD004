@@ -86,7 +86,9 @@
  * \param [IN] b 2nd value
  * \retval minValue Minimum value
  */
+#ifndef MIN
 #define MIN( a, b ) ( ( ( a ) < ( b ) ) ? ( a ) : ( b ) )
+#endif
 
 /**
  * @brief Math Abs macro

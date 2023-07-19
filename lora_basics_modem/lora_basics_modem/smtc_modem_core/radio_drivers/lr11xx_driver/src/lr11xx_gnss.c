@@ -157,7 +157,7 @@ enum
  *
  * @returns 32-bit value
  */
-static uint32_t lr11xx_gnss_uint8_to_uint32( uint8_t value[4] );
+static uint32_t lr11xx_gnss_uint8_to_uint32( uint8_t *value );
 
 /*!
  * @brief Returns the minimum of the operand given as parameter and the maximum allowed number of blocks

@@ -36,7 +36,7 @@
  * -----------------------------------------------------------------------------
  * --- DEPENDENCIES ------------------------------------------------------------
  */
-
+#include <zephyr/kernel.h>
 #include <stdint.h>   // C99 types
 #include <stdbool.h>  // bool type
 
@@ -652,7 +652,9 @@ smtc_se_return_code_t smtc_secure_element_get_pin( uint8_t pin[SMTC_SE_PIN_SIZE]
     {
         return SMTC_SE_RC_ERROR_NPE;
     }
-    memcpy( pin, soft_se_data.pin, SMTC_SE_EUI_SIZE );
+    // memcpy( pin, soft_se_data.pin, SMTC_SE_EUI_SIZE );
+    printk("%s %d FIX ME (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+
     return SMTC_SE_RC_SUCCESS;
 }
 

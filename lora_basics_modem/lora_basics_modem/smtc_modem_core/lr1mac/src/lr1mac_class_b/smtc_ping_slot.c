@@ -119,7 +119,7 @@ static void smtc_ping_slot_compute_next_ping_offset_time( smtc_ping_slot_t* ping
  * @param ping_slot_obj
  * @param timestamp_rtc
  */
-static void smtc_ping_slot_search_closest_ping_offset_time( smtc_ping_slot_t* ping_slot_obj, uint32_t timestamp_rtc );
+// PHIL static void smtc_ping_slot_search_closest_ping_offset_time( smtc_ping_slot_t* ping_slot_obj, uint32_t timestamp_rtc );
 
 /**
  * @brief Compute Time On Air of a payload size
@@ -312,8 +312,9 @@ void smtc_ping_slot_start( smtc_ping_slot_t* ping_slot_obj )
             return;
         }
 
+#if PHIL
         smtc_ping_slot_search_closest_ping_offset_time( ping_slot_obj, timestamp_rtc );
-
+#endif
         if( ping_slot_obj->rx_session_index == RX_SESSION_COUNT )
         {
             SMTC_MODEM_HAL_TRACE_PRINTF( "Ping Slot no more session\n" );
@@ -747,6 +748,7 @@ static void smtc_ping_slot_compute_next_ping_offset_time( smtc_ping_slot_t* ping
     }
 }
 
+#if PHIL
 static void smtc_ping_slot_search_closest_ping_offset_time( smtc_ping_slot_t* ping_slot_obj, uint32_t timestamp_rtc )
 {
     ping_slot_obj->rx_session_index = RX_SESSION_COUNT;
@@ -903,6 +905,7 @@ static void smtc_ping_slot_search_closest_ping_offset_time( smtc_ping_slot_t* pi
         }
     }
 }
+#endif
 
 static rx_packet_type_t smtc_ping_slot_mac_rx_frame_decode( smtc_ping_slot_t* ping_slot_obj )
 {
@@ -999,11 +1002,11 @@ static rx_packet_type_t smtc_ping_slot_mac_rx_frame_decode( smtc_ping_slot_t* pi
         {
             if( ping_slot_obj->rx_metadata.rx_fpending_bit == true )
             {
-                RX_SESSION_PARAM_CURRENT->fpending_bit = MULTICAST_FPENDING;
+// PHIL                RX_SESSION_PARAM_CURRENT->fpending_bit = MULTICAST_FPENDING;
             }
             else
             {
-                RX_SESSION_PARAM_CURRENT->fpending_bit = MULTICAST_WO_FPENDING;
+// PHIL                RX_SESSION_PARAM_CURRENT->fpending_bit = MULTICAST_WO_FPENDING;
             }
         }
 

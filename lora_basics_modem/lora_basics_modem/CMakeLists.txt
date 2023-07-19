@@ -1,0 +1,2 @@
+add_subdirectory(smtc_modem_core)
+add_subdirectory(utilities)

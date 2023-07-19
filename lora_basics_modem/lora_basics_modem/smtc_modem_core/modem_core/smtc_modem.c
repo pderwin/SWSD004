@@ -142,8 +142,8 @@
 
 #if !defined( LR1110_MODEM_E )
 static uint8_t   modem_buffer[242];
-static uint32_t* upload_pdata;
-static uint32_t  upload_size;
+// static uint32_t* upload_pdata;
+// static uint32_t  upload_size;
 
 static radio_planner_t modem_radio_planner;
 
@@ -216,7 +216,7 @@ struct
  * -----------------------------------------------------------------------------
  * --- PRIVATE FUNCTIONS DECLARATION -------------------------------------------
  */
-static bool modem_port_reserved( uint8_t f_port );
+// static bool modem_port_reserved( uint8_t f_port );
 
 static smtc_modem_return_code_t smtc_modem_get_dm_status_with_rate( uint8_t* dm_fields_payload,
                                                                     uint8_t* dm_field_length, dm_info_rate_t rate );
@@ -2891,10 +2891,12 @@ smtc_modem_return_code_t smtc_modem_get_output_power_lut( uint8_t config[30] )
  * --- PRIVATE FUNCTIONS DEFINITION --------------------------------------------
  */
 
+#if 0
 static bool modem_port_reserved( uint8_t f_port )
 {
     return ( f_port >= 224 );
 }
+#endif
 
 static smtc_modem_return_code_t smtc_modem_get_dm_status_with_rate( uint8_t* dm_fields_payload,
                                                                     uint8_t* dm_field_length, dm_info_rate_t rate )

@@ -1,0 +1,4 @@
+name: lora_basics_modem
+
+build:
+  cmake: .

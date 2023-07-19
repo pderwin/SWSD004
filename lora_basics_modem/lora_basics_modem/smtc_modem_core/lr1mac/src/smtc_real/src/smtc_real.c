@@ -2826,7 +2826,7 @@ uint32_t smtc_real_get_symbol_duration_us( lr1_stack_mac_t* lr1_mac, uint8_t dat
     }
     else
     {
-        uint8_t kbitrate;
+        uint8_t kbitrate = 0;
         smtc_real_fsk_dr_to_bitrate( lr1_mac, datarate, &kbitrate );
         return ( 8000 / ( kbitrate ) );  // 1 symbol equals 1 byte
     }

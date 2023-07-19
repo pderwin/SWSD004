@@ -191,6 +191,48 @@ inline static uint8_t lr11xx_hal_compute_crc( const uint8_t initial_value, const
     return crc;
 }
 
+
+/*!
+ * \brief Radio operating modes
+ */
+typedef enum lr11xx_hal_operating_mode_e
+{
+    LR11XX_HAL_OP_MODE_SLEEP = 0x00,  //! The radio is in sleep mode
+    LR11XX_HAL_OP_MODE_STDBY_RC,      //! The radio is in standby mode with RC oscillator
+    LR11XX_HAL_OP_MODE_STDBY_XOSC,    //! The radio is in standby mode with XOSC oscillator
+    LR11XX_HAL_OP_MODE_FS,            //! The radio is in frequency synthesis mode
+    LR11XX_HAL_OP_MODE_TX,            //! The radio is in transmit mode
+    LR11XX_HAL_OP_MODE_RX,            //! The radio is in receive single mode
+    LR11XX_HAL_OP_MODE_RX_C,          //! The radio is in receive continuous mode
+    LR11XX_HAL_OP_MODE_RX_DC,         //! The radio is in receive duty cycle mode
+    LR11XX_HAL_OP_MODE_CAD            //! The radio is in channel activity detection mode
+} lr11xx_hal_operating_mode_t;
+/*!
+ * Get radio operating mode
+ *
+ * \remark Must be implemented by the upper layer
+ *
+ * \param [in] context Radio implementation parameters
+ * \retval     op_mode Radio current operating mode
+ */
+lr11xx_hal_operating_mode_t lr11xx_hal_get_operating_mode( const void* context );
+
+/*!
+ * Set radio operating mode
+ *
+ * \remark Must be implemented by the upper layer
+ *
+ * \param [in] context Radio implementation parameters
+ * \param [in] op_mode Radio operating mode
+ */
+void lr11xx_hal_set_operating_mode( const void* context, const lr11xx_hal_operating_mode_t op_mode );
+
+
+void lr11xx_hal_timer_init (void);
+
+void lr11xx_hal_timer_start( const uint32_t milliseconds,  void (*callback)(void *context), void *context);
+void lr11xx_hal_timer_stop( void );
+
 #ifdef __cplusplus
 }
 #endif
