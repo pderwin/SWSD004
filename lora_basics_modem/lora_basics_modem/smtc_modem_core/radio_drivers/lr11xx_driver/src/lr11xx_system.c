@@ -38,6 +38,7 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "lr11xx_system.h"
 #include "lr11xx_hal.h"
@@ -162,6 +163,11 @@ lr11xx_status_t lr11xx_system_get_status( const void* context, lr11xx_system_sta
 {
     uint8_t         data[LR11XX_SYSTEM_GET_STATUS_DIRECT_READ_LENGTH];
     lr11xx_status_t status;
+
+    memset(data, 0, sizeof(data));
+
+    data[0] = ( uint8_t )( LR11XX_SYSTEM_GET_STATUS_OC >> 8 );
+    data[1] = ( uint8_t )( LR11XX_SYSTEM_GET_STATUS_OC >> 0 );
 
     status = ( lr11xx_status_t ) lr11xx_hal_direct_read( context, data, LR11XX_SYSTEM_GET_STATUS_DIRECT_READ_LENGTH );
 
