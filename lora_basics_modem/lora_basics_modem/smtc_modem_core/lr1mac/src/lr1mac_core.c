@@ -1239,6 +1239,8 @@ static void save_devnonce_rst( const lr1_stack_mac_t* lr1_mac_obj )
     smtc_modem_hal_context_restore( CONTEXT_DEVNONCE, ( uint8_t* ) &dummy_context, sizeof( dummy_context ) );
 }
 
+extern uint32_t hal_rng_get_random(void);
+
 static void load_devnonce_reset( lr1_stack_mac_t* lr1_mac_obj )
 {
     lr1_counter_context_t ctx = { 0 };
@@ -1253,6 +1255,8 @@ static void load_devnonce_reset( lr1_stack_mac_t* lr1_mac_obj )
     else
     {
         SMTC_MODEM_HAL_TRACE_WARNING( "No valid DevNonce in NVM, use default (0)\n" );
+
+        lr1_mac_obj->dev_nonce   =  hal_rng_get_random();
     }
 }
 
