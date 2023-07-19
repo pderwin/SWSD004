@@ -41,6 +41,9 @@
 #include "lr11xx_regmem.h"
 #include "lr11xx_hal.h"
 
+extern void debug_gpio_rx (uint32_t state);
+extern void debug_gpio_tx (uint32_t state);
+
 /*
  * -----------------------------------------------------------------------------
  * --- PRIVATE MACROS-----------------------------------------------------------
@@ -409,6 +412,8 @@ lr11xx_status_t lr11xx_radio_set_rx_with_timeout_in_rtc_step( const void* contex
             break;
         }
 
+        debug_gpio_rx(1);
+
         status = ( lr11xx_status_t ) lr11xx_hal_write( context, cbuffer, LR11XX_RADIO_SET_RX_CMD_LENGTH, 0, 0 );
         if( status != LR11XX_STATUS_OK )
         {
@@ -443,6 +448,11 @@ lr11xx_status_t lr11xx_radio_set_tx_with_timeout_in_rtc_step( const void* contex
         {
             break;
         }
+
+        /*
+         * Debug PIN
+         */
+        debug_gpio_tx(1);
 
         status = ( lr11xx_status_t ) lr11xx_hal_write( context, cbuffer, LR11XX_RADIO_SET_TX_CMD_LENGTH, 0, 0 );
         if( status != LR11XX_STATUS_OK )

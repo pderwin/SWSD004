@@ -31,13 +31,16 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
+#include <zephyr/kernel.h>
+#include <zephyr/drivers/trace.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "radio_planner.h"
 #include "smtc_modem_hal_dbg_trace.h"
 
 #include <string.h>
+
+extern void debug_gpio_clear(void);
 
 //
 // Private planner utilities declaration
@@ -281,6 +284,8 @@ rp_hook_status_t rp_task_enqueue( radio_planner_t* rp, const rp_task_t* task, ui
     }
     uint32_t now = rp_hal_get_time_in_ms( );
 
+    TRACE5(TAG_TASK_ENQUEUE, hook_id, payload, payload_size, now, task->start_time_ms);
+
     if( ( task->state == RP_TASK_STATE_SCHEDULE ) && ( ( ( int32_t )( task->start_time_ms - now ) <= 0 ) ) )
     {
         return RP_TASK_STATUS_SCHEDULE_TASK_IN_PAST;
@@ -499,6 +504,8 @@ static void rp_task_arbiter( radio_planner_t* rp, const char* caller_func_name )
 {
     uint32_t now = rp_hal_get_time_in_ms( );
 
+    TRACE1(TAG_ARBITER_ENTER, now);
+
     // Update time for ASAP task to now. But, also extended duration in case of running task is a RX task
     rp_task_update_time( rp, now );
 
@@ -506,7 +513,10 @@ static void rp_task_arbiter( radio_planner_t* rp, const char* caller_func_name )
     if( rp_task_select_next( rp, now ) == RP_SOMETHING_TO_DO )
     {  // Next task exists
         int32_t delay = ( int32_t )( rp->priority_task.start_time_ms - now );
-        SMTC_MODEM_HAL_RP_TRACE_PRINTF(
+
+        TRACE3(TAG_ARBITER_SELECT, delay, rp->priority_task.start_time_ms, now);
+
+         SMTC_MODEM_HAL_RP_TRACE_PRINTF(
             " RP: Arbiter has been called by %s and priority-task #%d, timer hook #%d, delay %d, now %d\n ",
             caller_func_name, rp->priority_task.hook_id, rp->timer_hook_id, delay, now );
 
@@ -618,6 +628,8 @@ static void rp_irq_get_status( radio_planner_t* rp, const uint8_t hook_id )
         smtc_modem_hal_mcu_panic( );
     }
 
+    debug_gpio_clear();
+
     // Do not modify the order of the next if / else if process
     rp->raw_radio_irq[hook_id] = radio_irq;
     if( ( radio_irq & RAL_IRQ_TX_DONE ) == RAL_IRQ_TX_DONE )
@@ -721,12 +733,19 @@ static uint8_t rp_task_select_next( radio_planner_t* rp, const uint32_t now )
     uint8_t  rank                 = 0;
     uint8_t  hook_id              = 0;
 
+    TRACE1(TAG_SELECT_NEXT_ENTRY, now);
+
     for( hook_id = 0; hook_id < RP_NB_HOOKS; hook_id++ )
     {  // Garbage collector
         if( ( rp->tasks[hook_id].state == RP_TASK_STATE_SCHEDULE ) &&
             ( ( ( int32_t )( rp->tasks[hook_id].start_time_ms - now ) < 0 ) ) )
         {
-            rp->tasks[hook_id].state = RP_TASK_STATE_ABORTED;
+           TRACE3(TAG_TASK_ABORT, hook_id, now,  rp->tasks[hook_id].start_time_ms);
+           printk("%s %d -- ABORT hook_id: %d NOW: %d start_time_ms: %d \n", __func__, __LINE__, hook_id, now, rp->tasks[hook_id].start_time_ms );
+
+           TRACE_DUMP();
+
+             rp->tasks[hook_id].state = RP_TASK_STATE_ABORTED;
         }
     }
     for( hook_id = 0; hook_id < RP_NB_HOOKS; hook_id++ )
@@ -738,7 +757,9 @@ static uint8_t rp_task_select_next( radio_planner_t* rp, const uint32_t now )
         {
             hook_to_exe_tmp      = rp->tasks[rank].hook_id;
             hook_time_to_exe_tmp = rp->tasks[rank].start_time_ms;
-            break;
+
+            TRACE4(TAG_SELECTED, hook_id,  rp->tasks[rank].state, rank, hook_time_to_exe_tmp);
+             break;
         }
     }
     if( hook_id == RP_NB_HOOKS )
@@ -760,7 +781,9 @@ static uint8_t rp_task_select_next( radio_planner_t* rp, const uint32_t now )
             {
                 hook_to_exe_tmp      = rp->tasks[rank].hook_id;
                 hook_time_to_exe_tmp = rp->tasks[rank].start_time_ms;
-            }
+
+                TRACE4(TAG_SELECTED2, hook_id,  rp->tasks[rank].state, rank, hook_time_to_exe_tmp);
+             }
         }
     }
     rp->priority_task = rp->tasks[hook_to_exe_tmp];
@@ -864,9 +887,18 @@ rp_hook_status_t rp_get_pkt_payload( radio_planner_t* rp, const rp_task_t* task 
     return status;
 }
 
-static void rp_set_alarm( radio_planner_t* rp, const uint32_t alarm_in_ms )
+static void rp_set_alarm( radio_planner_t* rp, uint32_t alarm_in_ms )
 {
     rp_hal_timer_stop( );
+
+#define ALARM_IN_MS_OFFSET (10)
+
+    if (alarm_in_ms > ALARM_IN_MS_OFFSET) {
+       TRACE2(TAG_ALARM_IN_MS, alarm_in_ms, alarm_in_ms - ALARM_IN_MS_OFFSET);
+
+       alarm_in_ms -= ALARM_IN_MS_OFFSET;
+    }
+
     rp_hal_timer_start( rp, alarm_in_ms, rp_timer_irq_callback );
 }
 
