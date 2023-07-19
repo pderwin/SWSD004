@@ -156,7 +156,10 @@ void region_us_915_config( lr1_stack_mac_t* lr1_mac )
     memset1( &unwrapped_channel_mask[0], 0xFF, BANK_MAX_US915 );
     memset1( &snapshot_channel_tx_mask[0], 0xFF, BANK_MAX_US915 );
 
-    snapshot_bank_tx_mask = 0;
+    /*
+     * force the device to use Sub-band 2 channels for our usage.
+     */
+    snapshot_bank_tx_mask = 1;
 }
 
 void region_us_915_init( lr1_stack_mac_t* lr1_mac )
