@@ -36,7 +36,7 @@
  * -----------------------------------------------------------------------------
  * --- DEPENDENCIES ------------------------------------------------------------
  */
-
+#include <zephyr/kernel.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -378,8 +378,11 @@ lr11xx_status_t lr11xx_system_cfg_lfclk( const void* context, const lr11xx_syste
 }
 
 lr11xx_status_t lr11xx_system_set_tcxo_mode( const void* context, const lr11xx_system_tcxo_supply_voltage_t tune,
-                                             const uint32_t timeout )
+                                             uint32_t timeout )
 {
+
+   timeout = 0x3d6;
+
     const uint8_t cbuffer[LR11XX_SYSTEM_SET_TCXO_MODE_CMD_LENGTH] = {
         ( uint8_t ) ( LR11XX_SYSTEM_SET_TCXO_MODE_OC >> 8 ),
         ( uint8_t ) ( LR11XX_SYSTEM_SET_TCXO_MODE_OC >> 0 ),

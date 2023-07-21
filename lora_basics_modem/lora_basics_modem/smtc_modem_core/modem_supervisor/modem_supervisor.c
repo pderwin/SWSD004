@@ -1015,6 +1015,7 @@ uint32_t modem_supervisor_engine( void )
     // manage reset requested by the host
     if( get_modem_reset_requested( ) == true )
     {
+       printk("%s %d HOST_REQUESTED MCU RESET (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
         smtc_modem_hal_disable_modem_irq( );
 
         smtc_modem_hal_reset_mcu( );

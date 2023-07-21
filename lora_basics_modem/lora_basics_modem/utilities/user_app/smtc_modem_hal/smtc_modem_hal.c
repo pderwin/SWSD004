@@ -36,21 +36,30 @@
  * -----------------------------------------------------------------------------
  * --- DEPENDENCIES ------------------------------------------------------------
  */
-#include <zephyr/kernel.h>
 #include <stdint.h>   // C99 types
 #include <stdbool.h>  // bool type
 #include <zephyr/kernel.h>
 
 #include "smtc_modem_hal.h"
+#if PHIL
+
 #include "smtc_hal_dbg_trace.h"
 
 #include "smtc_hal_adc.h"
+#endif
 #include "smtc_hal_flash.h"
 #include "smtc_hal_gpio.h"
+#ifdef PHIL
+#endif
 #include "smtc_hal_lp_timer.h"
+#ifdef PHIL
 #include "smtc_hal_mcu.h"
+#endif
+
 #include "smtc_hal_rng.h"
 #include "smtc_hal_rtc.h"
+
+#ifdef PHIL
 #include "smtc_hal_trace.h"
 #include "smtc_hal_uart.h"
 #include "smtc_hal_watchdog.h"
@@ -60,9 +69,14 @@
 // for variadic args
 #include <stdio.h>
 #include <stdarg.h>
+#endif
 
 // for memcpy
 #include <string.h>
+
+#ifndef RADIO_DIOX
+#define RADIO_DIOX 1
+#endif
 
 /*
  * -----------------------------------------------------------------------------
@@ -74,10 +88,10 @@
  * --- PRIVATE CONSTANTS -------------------------------------------------------
  */
 
-#define ADDR_FLASH_LORAWAN_CONTEXT ADDR_FLASH_PAGE_254
-#define ADDR_FLASH_MODEM_CONTEXT ADDR_FLASH_PAGE_255
-#define ADDR_FLASH_DEVNONCE_CONTEXT ADDR_FLASH_PAGE_253
-#define ADDR_FLASH_SECURE_ELEMENT_CONTEXT ADDR_FLASH_PAGE_252
+#define ADDR_FLASH_LORAWAN_CONTEXT ADDR_FLASH_PAGE(254)
+#define ADDR_FLASH_MODEM_CONTEXT ADDR_FLASH_PAGE(255)
+#define ADDR_FLASH_DEVNONCE_CONTEXT ADDR_FLASH_PAGE(253)
+#define ADDR_FLASH_SECURE_ELEMENT_CONTEXT ADDR_FLASH_PAGE(252)
 
 /*
  * -----------------------------------------------------------------------------
@@ -93,6 +107,7 @@ static hal_gpio_irq_t radio_dio_irq;
 uint8_t __attribute__( ( section( ".noinit" ) ) ) saved_crashlog[CRASH_LOG_SIZE];
 volatile bool __attribute__( ( section( ".noinit" ) ) ) crashlog_available;
 
+#ifdef PHIL
 /*
  * -----------------------------------------------------------------------------
  * --- PRIVATE FUNCTIONS DECLARATION -------------------------------------------
@@ -118,6 +133,7 @@ void smtc_modem_hal_reload_wdog( void )
     watchdog_reload( );
 }
 
+#endif
 /* ------------ Time management ------------*/
 
 uint32_t smtc_modem_hal_get_time_in_s( void )
@@ -235,7 +251,7 @@ void smtc_modem_hal_store_crashlog( uint8_t *crashlog)
    strncpy(saved_crashlog, crashlog, CRASH_LOG_SIZE);
 }
 
-void smtc_modem_hal_restore_crashlog( uint8_t crashlog[CRASH_LOG_SIZE] )
+void smtc_modem_hal_restore_crashlog( uint8_t *crashlog )
 {
     memcpy( crashlog, &saved_crashlog, CRASH_LOG_SIZE );
 }
@@ -264,12 +280,20 @@ void smtc_modem_hal_assert_fail( uint8_t* func, uint32_t line )
     smtc_modem_hal_reset_mcu( );
 }
 
+
+
+
+#ifdef PHIL
+
 /* ------------ Random management ------------*/
 
 uint32_t smtc_modem_hal_get_random_nb( void )
 {
     return hal_rng_get_random( );
 }
+
+#endif
+
 
 uint32_t smtc_modem_hal_get_random_nb_in_range( const uint32_t val_1, const uint32_t val_2 )
 {
@@ -292,10 +316,12 @@ void smtc_modem_hal_irq_config_radio_irq( void ( *callback )( void* context ), v
     hal_gpio_irq_attach( &radio_dio_irq );
 }
 
+#ifdef PHIL
 void smtc_modem_hal_radio_irq_clear_pending( void )
 {
     hal_gpio_clear_pending_irq( RADIO_DIOX );
 }
+#endif
 
 void smtc_modem_hal_start_radio_tcxo( void )
 {
@@ -312,6 +338,7 @@ uint32_t smtc_modem_hal_get_radio_tcxo_startup_delay_ms( void )
 #if defined( LR11XX )
     return 5;
 #else
+#error need to define LR11XX
     return 0;
 #endif
 }
@@ -365,9 +392,12 @@ void smtc_modem_hal_print_trace( const char* fmt, ... )
     va_end( args );
 }
 
+#ifdef PHIL
 /*
  * -----------------------------------------------------------------------------
  * --- PRIVATE FUNCTIONS DEFINITION --------------------------------------------
  */
 
 /* --- EOF ------------------------------------------------------------------ */
+
+#endif

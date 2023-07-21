@@ -1,0 +1,3 @@
+zephyr_include_directories(smtc_lr11xx_board)
+
+add_subdirectory(LR1110TRK1xKS)

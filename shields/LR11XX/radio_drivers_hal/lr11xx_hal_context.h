@@ -44,7 +44,7 @@ extern "C" {
  */
 
 #include <stdint.h>
-#include "smtc_hal_gpio_pin_names.h"
+// #include "smtc_hal_gpio_pin_names.h"
 
 /*
  * -----------------------------------------------------------------------------
@@ -61,13 +61,14 @@ extern "C" {
  * --- PUBLIC TYPES ------------------------------------------------------------
  */
 
-typedef struct
+   typedef struct
 {
-    hal_gpio_pin_names_t nss;
-    hal_gpio_pin_names_t busy;
-    hal_gpio_pin_names_t reset;
+//    hal_gpio_pin_names_t nss;
+//    hal_gpio_pin_names_t busy;
+//    hal_gpio_pin_names_t reset;
     uint32_t             spi_id;
 } lr11xx_hal_context_t;
+
 
 /*
  * -----------------------------------------------------------------------------

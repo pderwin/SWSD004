@@ -43,7 +43,7 @@
  * -----------------------------------------------------------------------------
  * --- DEPENDENCIES ------------------------------------------------------------
  */
-
+#include <zephyr/kernel.h>
 #include <time.h>
 #include <string.h>
 #include "smtc_hal.h"
@@ -52,6 +52,7 @@
 #include "smtc_board_ralf.h"
 #include "smtc_basic_modem_lr11xx_api_extension.h"
 #include "lr1110_trk1xks_board.h"
+#include "smtc_board.h"
 #include "tracker_utility.h"
 #include "main_tracker_application.h"
 #include "apps_modem_common.h"
@@ -143,7 +144,7 @@ tracker_ctx_t tracker_ctx;
 /*!
  * @brief Buffer containing chunk during lr11xx modem update
  */
-static uint32_t chunk_buffer[128];
+// static uint32_t chunk_buffer[128];
 
 /*!
  * @brief Buffer index pointing on the chunk last byte during lr11xx modem update
@@ -244,7 +245,7 @@ static void tracker_erase_internal_log( void );
 /*!
  * @brief Erase full user memory flash between end of the app and the contexts area
  */
-static void tracker_erase_full_user_flash_memory( void );
+// static void tracker_erase_full_user_flash_memory( void );
 
 /*!
  * @brief Check if a LoRaWAN region is already existing on the Modem-E tracker memory flash
@@ -280,6 +281,8 @@ static void tracker_check_app_ctx( void );
 
 tracker_return_status_t tracker_init_internal_log_ctx( void )
 {
+   printk("%s %d STUB (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     uint8_t ctx_buf[INTERNAL_LOG_CONTEXT_SIZE];
     hal_flash_read_buffer( FLASH_USER_INTERNAL_LOG_CTX_START_ADDR, ctx_buf, INTERNAL_LOG_CONTEXT_SIZE );
     tracker_ctx.internal_log_empty = ctx_buf[0];
@@ -299,11 +302,16 @@ tracker_return_status_t tracker_init_internal_log_ctx( void )
     {
         return TRACKER_ERROR;
     }
+#endif
+
     return TRACKER_SUCCESS;
 }
 
 tracker_return_status_t tracker_restore_internal_log_ctx( void )
 {
+   printk("%s %d STUB (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+
+   #if 0
     uint8_t ctx_buf[INTERNAL_LOG_CONTEXT_SIZE];
     uint8_t index = 0;
 
@@ -369,6 +377,8 @@ tracker_return_status_t tracker_restore_internal_log_ctx( void )
         HAL_DBG_TRACE_PRINTF( "#\tflash_user_end_addr : %08X\n", FLASH_USER_END_ADDR );
         HAL_DBG_TRACE_PRINTF( "#\tflash_remaining_space : %d%%\n\n", tracker_get_remaining_memory_space( ) );
     }
+    #endif
+
     return TRACKER_SUCCESS;
 }
 
@@ -454,6 +464,7 @@ tracker_return_status_t tracker_restore_app_ctx( void )
 
         tracker_ctx.lorawan_region          = ( smtc_modem_region_t ) ctx_buf[ctx_buf_idx++];
         tracker_ctx.use_semtech_join_server = ctx_buf[ctx_buf_idx++];
+
         tracker_ctx.airplane_mode           = ctx_buf[ctx_buf_idx++];
         tracker_ctx.scan_priority           = ( tracker_scan_priority_t ) ctx_buf[ctx_buf_idx++];
         tracker_ctx.internal_log_enable     = ctx_buf[ctx_buf_idx++];
@@ -585,7 +596,6 @@ void tracker_init_app_ctx( const uint8_t* dev_eui, const uint8_t* join_eui, cons
     memcpy( tracker_ctx.dev_eui, dev_eui, 8 );
     memcpy( tracker_ctx.join_eui, join_eui, 8 );
     memcpy( tracker_ctx.app_key, app_key, 16 );
-    tracker_ctx.use_semtech_join_server = true;
 
     /*Check if a LoRaWAN region is already existing in the case of Modem-E tracker migration*/
     if( tracker_check_for_existing_region( &existing_region ) == false )
@@ -618,7 +628,11 @@ void tracker_init_app_ctx( const uint8_t* dev_eui, const uint8_t* join_eui, cons
     tracker_ctx.accelerometer_used     = true;
     tracker_ctx.mobile_scan_interval   = MOBILE_SCAN_INTERVAL_DEFAULT;
     tracker_ctx.static_scan_interval   = STATIC_SCAN_INTERVAL_DEFAULT;
-    tracker_ctx.airplane_mode          = true;
+
+    printk("%s %d CLEAR AIRPLANE MODE (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+    tracker_ctx.airplane_mode          = false;
+
+
     tracker_ctx.internal_log_enable    = true;
     tracker_ctx.accumulated_charge_mAh = 0;
 
@@ -1059,6 +1073,7 @@ uint8_t tracker_parse_cmd( uint8_t stack_id, uint8_t* payload, uint8_t* buffer_o
 
             case SET_LR11XX_UPDATE_CMD:
             {
+#if PHIL
                 if( all_commands_enable )
                 {
                     uint16_t lr11xx_fragment_id;
@@ -1143,7 +1158,9 @@ uint8_t tracker_parse_cmd( uint8_t stack_id, uint8_t* payload, uint8_t* buffer_o
                 }
 
                 payload_index += SET_LR11XX_UPDATE_LEN;
+
                 break;
+#endif
             }
 
             case GET_LORAWAN_PIN_CMD:
@@ -1735,6 +1752,7 @@ uint8_t tracker_parse_cmd( uint8_t stack_id, uint8_t* payload, uint8_t* buffer_o
                 {
                     tracker_ctx.new_value_to_set                = true;
                     tracker_ctx.use_semtech_join_server         = payload[payload_index];
+                    printk("%s %d JJJJ payload : %d (from %p) \n", __func__, __LINE__, tracker_ctx.use_semtech_join_server,  __builtin_return_address(0) );
                     tracker_ctx.lorawan_parameters_have_changed = true;
                 }
 
@@ -1760,6 +1778,8 @@ uint8_t tracker_parse_cmd( uint8_t stack_id, uint8_t* payload, uint8_t* buffer_o
 
             case SET_AIRPLANE_MODE_CMD:
             {
+               printk("%s %d SET AIRPLANE MODE (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+
                 if( all_commands_enable )
                 {
                     tracker_ctx.new_value_to_set = true;
@@ -2201,7 +2221,7 @@ static void tracker_print_device_settings( void )
     HAL_DBG_TRACE_MSG( "\n#Tracker Settings :\n" );
 
     HAL_DBG_TRACE_MSG( "#LoRaWAN Settings :\n" );
-    HAL_DBG_TRACE_PRINTF( "#\tLORA BASIC MODEM VERSION : LORAWAN : %#02X%#02X%#02X | FIRMWARE : %#02X%#02X%#02X \n",
+    HAL_DBG_TRACE_PRINTF( "#\tLORA BASIC MODEM Version : LORAWAN : %02x%02x%02x | FIRMWARE : %02X%02X%02X \n",
                           tracker_ctx.lorawan_version.major, tracker_ctx.lorawan_version.minor,
                           tracker_ctx.lorawan_version.patch, tracker_ctx.firmware_version.major,
                           tracker_ctx.firmware_version.minor, tracker_ctx.firmware_version.patch );
@@ -2335,7 +2355,7 @@ static void tracker_get_device_settings( uint8_t* out_buffer, const uint16_t out
                   "#\tassistance position longitude : %f\r\n", tracker_ctx.gnss_assistance_position_longitude );
 
     *buffer_len += snprintf( ( char* ) ( out_buffer + *buffer_len ), out_buffer_len - *buffer_len,
-                             "#\tlast almanac update : %ld\r\n", tracker_ctx.gnss_last_almanac_update );
+                             "#\tlast almanac update : %d\r\n", tracker_ctx.gnss_last_almanac_update );
 
     /* Application settings */
     *buffer_len +=
@@ -2345,13 +2365,13 @@ static void tracker_get_device_settings( uint8_t* out_buffer, const uint16_t out
                              "#\taccelerometer_used : %d\r\n", tracker_ctx.accelerometer_used );
 
     *buffer_len += snprintf( ( char* ) ( out_buffer + *buffer_len ), out_buffer_len - *buffer_len,
-                             "#\taccumulated_charge : %ld mAh\r\n", tracker_ctx.accumulated_charge_mAh );
+                             "#\taccumulated_charge : %d mAh\r\n", tracker_ctx.accumulated_charge_mAh );
 
     *buffer_len += snprintf( ( char* ) ( out_buffer + *buffer_len ), out_buffer_len - *buffer_len,
-                             "#\tmobile_scan_interval : %ld s\r\n", tracker_ctx.mobile_scan_interval );
+                             "#\tmobile_scan_interval : %d s\r\n", tracker_ctx.mobile_scan_interval );
 
     *buffer_len += snprintf( ( char* ) ( out_buffer + *buffer_len ), out_buffer_len - *buffer_len,
-                             "#\tstatic_scan_interval : %ld min\r\n", tracker_ctx.static_scan_interval / 60 );
+                             "#\tstatic_scan_interval : %d min\r\n", tracker_ctx.static_scan_interval / 60 );
 
     *buffer_len += snprintf( ( char* ) ( out_buffer + *buffer_len ), out_buffer_len - *buffer_len,
                              "#\tairplane_mode : %d\r\n", tracker_ctx.airplane_mode );
@@ -2592,7 +2612,7 @@ static void tracker_get_one_scan_from_internal_log( uint16_t scan_number, uint8_
                                      epoch_time.tm_mday, epoch_time.tm_hour, epoch_time.tm_min, epoch_time.tm_sec );
 
             *buffer_len += snprintf( ( char* ) ( out_buffer + *buffer_len ), out_buffer_len - *buffer_len,
-                                     "[%ld - %d] ", job_counter, tag_element );
+                                     "[%d - %d] ", job_counter, tag_element );
 
             if( nav_len > 0 )
             {
@@ -2633,7 +2653,7 @@ static void tracker_get_one_scan_from_internal_log( uint16_t scan_number, uint8_
                                          epoch_time.tm_mday, epoch_time.tm_hour, epoch_time.tm_min, epoch_time.tm_sec );
 
                 *buffer_len += snprintf( ( char* ) ( out_buffer + *buffer_len ), out_buffer_len - *buffer_len,
-                                         "[%ld - %d] ", job_counter, tag_element );
+                                         "[%d - %d] ", job_counter, tag_element );
 
                 wifi_rssi = scan_buf[scan_buf_index++];
 
@@ -2705,6 +2725,7 @@ static void tracker_erase_internal_log( void )
     hal_flash_erase_page( FLASH_USER_INTERNAL_LOG_CTX_START_ADDR, 1 );
 }
 
+#if 0
 static void tracker_erase_full_user_flash_memory( void )
 {
     uint8_t nb_page_to_erase = 0;
@@ -2716,6 +2737,7 @@ static void tracker_erase_full_user_flash_memory( void )
     /* Erase ctx */
     hal_flash_erase_page( FLASH_USER_INTERNAL_LOG_CTX_START_ADDR, 1 );
 }
+#endif
 
 static bool smtc_board_get_almanac_dates( const void* context, uint32_t* oldest_almanac_date,
                                           uint32_t* newest_almanac_date )

@@ -266,7 +266,7 @@ void smtc_modem_hal_context_store( const modem_context_type_t ctx_type, const ui
  *
  * @param [in] crashlog   Buffer of 32 bytes containing crashlog data to store
  */
-void smtc_modem_hal_store_crashlog( uint8_t crashlog[CRASH_LOG_SIZE] );
+void smtc_modem_hal_store_crashlog( uint8_t *crashlog );
 
 /**
  * @brief Restores the crashlog
@@ -275,7 +275,7 @@ void smtc_modem_hal_store_crashlog( uint8_t crashlog[CRASH_LOG_SIZE] );
  *
  * @param [out] crashlog   Buffer of 32 bytes containing crashlog data restored
  */
-void smtc_modem_hal_restore_crashlog( uint8_t crashlog[CRASH_LOG_SIZE] );
+void smtc_modem_hal_restore_crashlog( uint8_t *crashlog );
 
 /**
  * @brief Stores the crashlog status

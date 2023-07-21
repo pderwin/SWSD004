@@ -36,7 +36,6 @@
  * -----------------------------------------------------------------------------
  * --- DEPENDENCIES ------------------------------------------------------------
  */
-
 #include "apps_modem_event.h"
 #include "smtc_hal_dbg_trace.h"
 #include "smtc_modem_api_str.h"
@@ -100,7 +99,7 @@ void apps_modem_event_process( void )
                 {
                 case SMTC_MODEM_EVENT_RESET:
                     HAL_DBG_TRACE_INFO( "###### ===== BASICS MODEM RESET EVENT ==== ######\n" );
-                    HAL_DBG_TRACE_PRINTF( "Reset count : %lu \n", current_event.event_data.reset.count );
+                    HAL_DBG_TRACE_PRINTF( "Reset count : %u \n", current_event.event_data.reset.count );
                     if( apps_modem_event_callback->reset != NULL )
                     {
                         apps_modem_event_callback->reset( current_event.event_data.reset.count );

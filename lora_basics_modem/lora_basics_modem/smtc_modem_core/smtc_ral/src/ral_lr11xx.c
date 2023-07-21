@@ -36,7 +36,7 @@
  * -----------------------------------------------------------------------------
  * --- DEPENDENCIES ------------------------------------------------------------
  */
-
+#include <zephyr/kernel.h>
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -391,6 +391,25 @@ ral_status_t ral_lr11xx_init( const void* context )
         }
     }
 
+    {
+       lr11xx_system_stat1_t stat1;
+       lr11xx_system_stat2_t stat2;
+       lr11xx_system_irq_mask_t irq_status;
+
+       status = lr11xx_system_get_status(context, &stat1, &stat2, &irq_status);
+
+       if( status != RAL_STATUS_OK ) {
+          return status;
+       }
+
+       status = lr11xx_system_clear_irq_status( context, irq_status );
+
+       if (status != RAL_STATUS_OK) {
+          return status;
+       }
+    }
+
+
     ral_lr11xx_bsp_get_reg_mode( context, &reg_mode );
     status = ( ral_status_t ) lr11xx_system_set_reg_mode( context, reg_mode );
     if( status != RAL_STATUS_OK )
@@ -693,6 +712,8 @@ ral_status_t ral_lr11xx_set_rf_freq( const void* context, const uint32_t freq_in
 {
     ral_status_t                          status = RAL_STATUS_ERROR;
     lr11xx_radio_rssi_calibration_table_t rssi_calibration_table;
+
+    printk("%s %d f: %d (from %p) \n", __func__, __LINE__, freq_in_hz, __builtin_return_address(0) );
 
     status = ( ral_status_t ) lr11xx_radio_set_rf_freq( context, freq_in_hz );
     if( status != RAL_STATUS_OK )

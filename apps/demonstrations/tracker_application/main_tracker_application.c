@@ -46,34 +46,58 @@
  * -----------------------------------------------------------------------------
  * --- DEPENDENCIES ------------------------------------------------------------
  */
-
+#include <zephyr/kernel.h>
+#include <zephyr/device.h>
+#include <zephyr/drivers/gpio.h>
+#include <stdio.h>
+#include <string.h>
 #include "main_tracker_application.h"
 #include "tracker_utility.h"
 #include "lorawan_key_config.h"
 #include "smtc_board.h"
+
+
+#ifdef PHIL
+
+
 #include "smtc_hal.h"
+#endif
+
 #include "apps_utilities.h"
 #include "apps_modem_common.h"
 #include "apps_modem_event.h"
 
+#ifdef PHIL
 #include "lr11xx_gnss.h"
+#endif // PHIL
 #include "lr11xx_system.h"
+
+#ifdef PHIL
+
 #include "lr11xx_bootloader.h"
 
-#include "smtc_modem_api.h"
+#endif // PHIL
+
+#include "smtc_hal_dbg_trace.h"
 #include "smtc_modem_hal.h"
 #include "smtc_basic_modem_lr11xx_api_extension.h"
+
+#if PHIL
 #include "smtc_modem_test_api.h"
+#endif
+
+
 #include "smtc_modem_utilities.h"
 #include "smtc_board_ralf.h"
-
+#include "ralf.h"
 #include "lr1110_trk1xks_board.h"
-#include "smtc_lr11xx_board.h"
-#include "ble_thread.h"
 
-#include <stdio.h>
-#include <string.h>
 
+#ifdef PHIL
+// #include "smtc_lr11xx_board.h"
+// #include "ble_thread.h"
+
+#endif // PHIL
 /*
  * -----------------------------------------------------------------------------
  * --- PRIVATE MACROS-----------------------------------------------------------
@@ -87,7 +111,7 @@
 /*!
  * @brief Force a new tracker context in flash memory
  */
-#define FORCE_NEW_TRACKER_CONTEXT 0
+#define FORCE_NEW_TRACKER_CONTEXT 1
 
 /*
  * -----------------------------------------------------------------------------
@@ -112,7 +136,7 @@ static uint8_t stack_id = 0;
 /*!
  * @brief Modem radio
  */
-ralf_t* modem_radio;
+ralf_t* tracker_modem_radio;
 
 /*
  * -----------------------------------------------------------------------------
@@ -262,16 +286,23 @@ static void on_middleware_wifi_event( uint8_t pending_events );
  * -----------------------------------------------------------------------------
  * --- PUBLIC FUNCTIONS DEFINITION ---------------------------------------------
  */
+const void *lr11xx_hal_get_radio_context( void );
+
+extern void debug_gpio_init (void);
+extern uint32_t dump_set_tx;
 
 /**
  * @brief Main application entry point.
  */
-int main( void )
+int main_tracker_application( void )
 {
     uint32_t sleep_time_ms                   = 0;
-    uint8_t  dev_eui[LORAWAN_DEVICE_EUI_LEN] = LORAWAN_DEVICE_EUI;
-    uint8_t  join_eui[LORAWAN_JOIN_EUI_LEN]  = LORAWAN_JOIN_EUI;
-    uint8_t  app_key[LORAWAN_APP_KEY_LEN]    = LORAWAN_APP_KEY;
+
+    dump_set_tx = 1;
+
+    static uint8_t join_eui[8] = { 0x70, 0xB3, 0xD5, 0x7E, 0xD0, 0x03, 0x31, 0xC9 };
+    static uint8_t dev_eui[8]  = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x03 };
+    static uint8_t app_key[16] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
     static apps_modem_event_callback_t smtc_event_callback = {
         .adr_mobile_to_static  = NULL,
@@ -294,38 +325,94 @@ int main( void )
         .middleware_2          = on_middleware_wifi_event,
     };
 
+    printk("%s %d MAIN TRACKER ENTRY (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+
+    /*
+     * Get some debug pins initialized
+     */
+    debug_gpio_init();
+
     /* Initialise the ralf_t object corresponding to the board */
-    modem_radio = smtc_board_initialise_and_get_ralf( );
+    tracker_modem_radio = smtc_board_initialise_and_get_ralf( );
+
+    /*
+     * Setup the context of the modem_radio to point to our lora device driver.
+     */
+   {
+      const struct device *lna_dev;
+
+      lna_dev = device_get_binding("gpio@50000000");
+
+      if (lna_dev) {
+         gpio_pin_configure(lna_dev, 25, GPIO_OUTPUT_ACTIVE);
+         gpio_pin_set(lna_dev, 25, 1);
+      }
+      else {
+         printk("%s: GPIO_1 block not found\n", __func__);
+      }
+   }
+
+
+#define FORCE_GPIO_1_7_HIGH 1
+#if	defined(FORCE_GPIO_1_7_HIGH)
+    {
+       const struct device *dev1;
+
+       /*
+        * This appears to be a UART DTE signal
+        */
+       dev1 = device_get_binding("gpio@50000300");
+       if (dev1) {
+          gpio_pin_configure(dev1, 7, GPIO_OUTPUT_ACTIVE);
+          gpio_pin_set(dev1, 7, 1);
+       }
+       else {
+          printk("%s: GPIO_1 block not found\n", __func__);
+       }
+    }
+#else
+#error NOT DOING FORCE
+#endif
+
+
+    /*
+     * TODO: the context really should be given to the modem_radio as it is
+     *       initizlized above.  This setting of the context is a kludge.
+     */
+    tracker_modem_radio->ral.context = lr11xx_hal_get_radio_context();
 
     /* Disable IRQ to avoid unwanted behaviour during init */
-    hal_mcu_disable_irq( );
+//    hal_mcu_disable_irq( );
 
     /* Init board and peripherals */
-    hal_mcu_init( );
-    smtc_board_init_periph( );
+//    hal_mcu_init( );
+//    smtc_board_init_periph( );
 
-    /* Check LR11XX Firmware version */
-    if( tracker_app_lr11xx_check_firmware_version( modem_radio->ral.context ) != true )
-    {
-        HAL_DBG_TRACE_INFO( "Something goes wrong with the LR11XX firmware, stay in BLE mode and update it\n" );
-        hal_mcu_enable_irq( );
-        tracker_app_init_context( dev_eui, join_eui, app_key );
-        while( 1 )
-        {
-            /* Stay in BLE while the LR11XX firmware is not installed */
-            start_ble_thread( 0 );
-        }
-    }
-
-    /* Init the Lora Basics Modem event callbacks */
+      /* Init the Lora Basics Modem event callbacks */
     apps_modem_event_init( &smtc_event_callback );
 
     /* Init the modem and use apps_modem_event_process as event callback, please note that the callback will be called
      * immediately after the first call to modem_run_engine because of the reset detection */
-    smtc_modem_init( modem_radio, &apps_modem_event_process );
+    smtc_modem_init( tracker_modem_radio, &apps_modem_event_process );
+
+  /* Check LR11XX Firmware version */
+    if( tracker_app_lr11xx_check_firmware_version( tracker_modem_radio->ral.context ) != true )
+    {
+       HAL_DBG_TRACE_INFO( "Something goes wrong with the LR11XX firmware, stay in BLE mode and update it\n" );
+       hal_mcu_enable_irq( );
+       tracker_app_init_context( dev_eui, join_eui, app_key );
+       while( 1 )
+       {
+          /* Stay in BLE while the LR11XX firmware is not installed */
+//          start_ble_thread( 0 );
+          k_sleep(K_MSEC(1000));
+          printk("%s %d waiting for BLE\n", __func__, __LINE__);
+
+       }
+    }
 
     /* Re-enable IRQ */
-    hal_mcu_enable_irq( );
+//    hal_mcu_enable_irq( );
 
     /* Notify user that the board is initialized */
     smtc_board_leds_blink( smtc_board_get_led_all_mask( ), 100, 2 );
@@ -337,6 +424,7 @@ int main( void )
 
     HAL_DBG_TRACE_INFO( "###### ===== LoRa Basics Modem Version ==== ######\n" );
     tracker_app_display_lbm_version( );
+    printk("%s %d region: %d \n", __func__, __LINE__,  tracker_ctx.lorawan_region);
 
     /* Init Tracker context */
     tracker_app_init_context( dev_eui, join_eui, app_key );
@@ -346,15 +434,21 @@ int main( void )
         /* Execute modem runtime, this function must be called again in sleep_time_ms milliseconds or sooner. */
         sleep_time_ms = smtc_modem_run_engine( );
 
+
+
+
+
         if( get_hall_effect_irq_state( ) == true )
         {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
             /* Effect hall irq, reset the board*/
             smtc_modem_hal_reset_mcu( );
         }
         else
         {
-            /* go in low power */
-            hal_mcu_set_sleep_for_ms( sleep_time_ms );
+           /* go in low power */
+           hal_mcu_set_sleep_for_ms( sleep_time_ms );
+#ifdef PHIL
 
             if( tracker_ctx.airplane_mode == false )
             {
@@ -381,8 +475,13 @@ int main( void )
                                           TRACKER_AIRPLANE_HALL_EFFECT_TIMEOUT_MS / 1000 );
                 }
             }
-        }
-    }
+#endif
+        } // else
+        k_sleep(K_MSEC(1000));
+
+    } // while(1)
+
+    return 0;
 }
 
 /*
@@ -394,7 +493,6 @@ int main( void )
  * -----------------------------------------------------------------------------
  * --- TRACKER GNSS FUNCTION TYPES ---------------------------------------------
  */
-
 static void tracker_gnss_store_new_assistance_position( gnss_mw_event_data_scan_done_t* gnss_scan_results )
 {
     float latitude_dif, longitude_dif;
@@ -485,6 +583,8 @@ static void tracker_app_modem_configure_lorawan_params( void )
     HAL_DBG_TRACE_INFO( "LoRaWAN parameters:\n" );
 
     rc = smtc_modem_get_chip_eui( stack_id, tracker_ctx.chip_eui );
+        printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+
     if( rc == SMTC_MODEM_RC_OK )
     {
         HAL_DBG_TRACE_ARRAY( "ChipEIU", tracker_ctx.chip_eui, SMTC_MODEM_EUI_LENGTH );
@@ -493,6 +593,7 @@ static void tracker_app_modem_configure_lorawan_params( void )
     {
         HAL_DBG_TRACE_ERROR( "smtc_modem_get_chip_eui failed (%d)\n", rc );
     }
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 
     rc = smtc_modem_set_deveui( stack_id, tracker_ctx.dev_eui );
     if( rc == SMTC_MODEM_RC_OK )
@@ -503,6 +604,7 @@ static void tracker_app_modem_configure_lorawan_params( void )
     {
         HAL_DBG_TRACE_ERROR( "smtc_modem_get_deveui failed (%d)\n", rc );
     }
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 
     rc = smtc_modem_set_joineui( stack_id, tracker_ctx.join_eui );
     if( rc == SMTC_MODEM_RC_OK )
@@ -513,6 +615,7 @@ static void tracker_app_modem_configure_lorawan_params( void )
     {
         HAL_DBG_TRACE_ERROR( "smtc_modem_get_joineui failed (%d)\n", rc );
     }
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 
     /* The Derive keys is done thought the smtc_modem_get_pin command */
     rc = smtc_modem_get_pin( stack_id, tracker_ctx.lorawan_pin );
@@ -524,9 +627,18 @@ static void tracker_app_modem_configure_lorawan_params( void )
     {
         HAL_DBG_TRACE_ERROR( "smtc_modem_get_pin failed (%d)\n", rc );
     }
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 
-    if( tracker_ctx.use_semtech_join_server == false )
+    printk("%s %d ZZZZZZZZZZZZZZZZZZ use_semtech: %d (from %p) \n", __func__, __LINE__,tracker_ctx.use_semtech_join_server,  __builtin_return_address(0) );
+
+    if (tracker_ctx.use_semtech_join_server) {
+       printk("%s %d ERROR: should not use semtech server.  Forcing off (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+       tracker_ctx.use_semtech_join_server = false;
+    }
+
+       if( tracker_ctx.use_semtech_join_server == false )
     {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
         rc = smtc_modem_set_nwkkey( stack_id, tracker_ctx.app_key );
         if( rc == SMTC_MODEM_RC_OK )
         {
@@ -539,15 +651,22 @@ static void tracker_app_modem_configure_lorawan_params( void )
     }
     else
     {
-        HAL_DBG_TRACE_MSG( "AppKey : Use Semtech Join Sever\n" );
+
+        HAL_DBG_TRACE_MSG( "AppKey : Use Semtech Join Server\n" );
     }
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 
     ASSERT_SMTC_MODEM_RC( smtc_modem_set_class( stack_id, LORAWAN_CLASS ) );
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
     modem_class_to_string( LORAWAN_CLASS );
 
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+
     ASSERT_SMTC_MODEM_RC( smtc_modem_set_region( stack_id, tracker_ctx.lorawan_region ) );
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
     modem_region_to_string( tracker_ctx.lorawan_region );
 
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
     /* Configure modem DM status for regular almanac status update */
     smtc_modem_dm_info_interval_format_t format   = SMTC_MODEM_DM_INFO_INTERVAL_IN_DAY;
     uint8_t                              interval = 1;
@@ -782,16 +901,21 @@ static bool tracker_app_lr11xx_check_firmware_version( const void* context )
     bool            has_expected_fw_version = false;
     uint8_t         lr11xx_busy_pin_state   = 0;
 
-    smtc_board_reset_radio( context );
+    /*
+     * Original code would reset the radio here.  This caused issues that the join request would not get
+     * transmitted, so removed it.
+     */
 
     /* Check if the LR1110 is in transceiver mode or Modem-E mode, busy pin in low for transceiver mode, high for
      * Modem-E */
     lr11xx_busy_pin_state = smtc_board_read_busy_pin( context );
 
+    printk("%s %d lr11xx_busy_pin_state: %d (from %p) \n", __func__, __LINE__,  lr11xx_busy_pin_state, __builtin_return_address(0) );
+
     if( lr11xx_busy_pin_state == 0 )
     {
         /* LR1110 is in transceiver mode */
-        status = lr11xx_system_get_version( modem_radio->ral.context, &tracker_ctx.lr11xx_fw_version );
+        status = lr11xx_system_get_version( tracker_modem_radio->ral.context, &tracker_ctx.lr11xx_fw_version );
         HAL_DBG_TRACE_PRINTF( "type 0x%04X \n", tracker_ctx.lr11xx_fw_version.type );
 
         if( ( status == LR11XX_STATUS_OK ) && ( tracker_ctx.lr11xx_fw_version.type == 0x0001 ) )
@@ -925,10 +1049,11 @@ static void tracker_app_set_max_tx_power_supported( smtc_modem_region_t region, 
 
 static void on_modem_reset( uint16_t reset_count )
 {
-    HAL_DBG_TRACE_INFO( "###### ===== LoRa Basics Modem reset %lu ==== ######\n\n", reset_count );
+    HAL_DBG_TRACE_INFO( "###### ===== LoRa Basics Modem reset %u ==== ######\n\n", reset_count );
 
     if( smtc_board_is_ready( ) == true )
     {
+    printk("%s %d READY -- do reset (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
         /* System reset */
         smtc_modem_hal_reset_mcu( );
     }
@@ -943,21 +1068,36 @@ static void on_modem_reset( uint16_t reset_count )
         tracker_app_modem_configure_lorawan_params( );
 
         /* Start the BLE thread*/
-        start_ble_thread( TRACKER_ADV_TIMEOUT_MS );
+// PHIL        start_ble_thread( TRACKER_ADV_TIMEOUT_MS );
 
         /* Check if the batteries are too low, if yes switch the tracker in airplane mode, \note if this test is
          * moved elsewhere in this app the TRACKER_BOARD_MAX_VOLTAGE_RECOVERY_TIME value should be evaluate again */
         smtc_board_measure_battery_drop( stack_id, tracker_ctx.lorawan_region, &voltage_drop, &voltage_recovery_time );
+
         if( ( voltage_recovery_time > TRACKER_BOARD_MAX_VOLTAGE_RECOVERY_TIME ) &&
             ( tracker_ctx.accumulated_charge_mAh > ( TRACKER_BOARD_BATTERY_CAPACITY * 0.8 ) ) )
         {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
             HAL_DBG_TRACE_ERROR( "###### ===== BATTERIES LOW, STAY IN AIRPLANE MODE ==== ######\n\n" );
             tracker_ctx.airplane_mode = true;
             smtc_board_leds_blink( smtc_board_get_led_all_mask( ), 500, 5 );
         }
 
+    printk("%s %d airplane_mode: %d \n", __func__, __LINE__, tracker_ctx.airplane_mode );
+
         if( tracker_ctx.airplane_mode == false )
         {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+
+
+
+
+
+
+
+
+
+
             /* Start the Join process */
             ASSERT_SMTC_MODEM_RC( smtc_modem_join_network( stack_id ) );
 
@@ -994,7 +1134,7 @@ static void on_modem_network_joined( void )
     gnss_mw_get_version( &mw_version );
     HAL_DBG_TRACE_INFO( "Initializing GNSS middleware v%d.%d.%d\n", mw_version.major, mw_version.minor,
                         mw_version.patch );
-    gnss_mw_init( modem_radio, stack_id );
+    gnss_mw_init( tracker_modem_radio, stack_id );
     gnss_mw_set_constellations( GNSS_MW_CONSTELLATION_GPS_BEIDOU );
     gnss_mw_set_user_aiding_position( tracker_ctx.gnss_assistance_position_latitude,
                                       tracker_ctx.gnss_assistance_position_longitude );
@@ -1003,7 +1143,7 @@ static void on_modem_network_joined( void )
     wifi_mw_get_version( &mw_version );
     HAL_DBG_TRACE_INFO( "Initializing Wi-Fi middleware v%d.%d.%d\n", mw_version.major, mw_version.minor,
                         mw_version.patch );
-    wifi_mw_init( modem_radio, stack_id );
+    wifi_mw_init( tracker_modem_radio, stack_id );
 }
 
 static void on_modem_down_data( int8_t rssi, int8_t snr, smtc_modem_event_downdata_window_t rx_window, uint8_t port,

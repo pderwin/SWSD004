@@ -1715,6 +1715,7 @@ void modem_context_factory_reset( void )
     // dummy context reading to ensure context store is done before exiting the function
     smtc_modem_hal_context_restore( CONTEXT_LR1MAC, ( uint8_t* ) &ctx, sizeof( ctx ) );
 
+    printk("%s %d SETTING MODEM RESET REQUESTED (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
     is_modem_reset_requested = true;
     SMTC_MODEM_HAL_TRACE_INFO( "modem_context_factory_reset done\n" );
 }
@@ -1803,6 +1804,7 @@ bool get_modem_reset_requested( void )
 }
 void set_modem_reset_requested( bool reset_req )
 {
+   printk("%s %d SET MODEM RESET REQUESTED TO: %d (from %p) \n", __func__, __LINE__, reset_req, __builtin_return_address(0) );
     is_modem_reset_requested = reset_req;
 }
 

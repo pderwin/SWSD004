@@ -2605,8 +2605,10 @@ smtc_modem_return_code_t smtc_modem_get_adr_ack_limit_delay( uint8_t stack_id, u
 smtc_modem_return_code_t smtc_modem_get_pin( uint8_t stack_id, uint8_t chip_pin[4] )
 {
     UNUSED( stack_id );
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 
     RETURN_BUSY_IF_TEST_MODE( );
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 
 #if defined( USE_LR11XX_CE )
     lr11xx_system_uid_t      deveui;

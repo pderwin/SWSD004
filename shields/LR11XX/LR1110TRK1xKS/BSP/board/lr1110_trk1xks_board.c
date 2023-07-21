@@ -69,7 +69,7 @@
  */
 typedef struct
 {
-    timer_event_t led_timer;         /*!< @brief Pulse timer */
+//    timer_event_t led_timer;         /*!< @brief Pulse timer */
     bool          timer_initialized; /*!< @brief True if the pulse timer has been initialized, false otherwise */
 } smtc_board_led_ctx_t;
 
@@ -78,7 +78,7 @@ typedef struct
  */
 typedef struct
 {
-    timer_event_t effect_hall_timer; /*!< @brief Effect hall timer */
+//    timer_event_t effect_hall_timer; /*!< @brief Effect hall timer */
     bool          timer_initialized; /*!< @brief True if the pulse timer has been initialized, false otherwise */
 } smtc_board_effect_hall_ctx_t;
 
@@ -90,7 +90,7 @@ typedef struct
     uint32_t      pulse_duration_ms;
     uint32_t      period_ms;
     uint32_t      led_mask;
-    timer_event_t periodic_timer;    /*!< @brief periodic timer */
+//    timer_event_t periodic_timer;    /*!< @brief periodic timer */
     bool          timer_initialized; /*!< @brief True if the pulse timer has been initialized, false otherwise */
 } smtc_board_periodic_led_pulse_ctx_t;
 
@@ -122,23 +122,27 @@ static smtc_board_gnss_antenna_t smtc_board_gnss_selected_antenna = GNSS_PCB_ANT
 /*!
  * @brief LR1110 Tracker Board LED context array
  */
-static smtc_board_led_ctx_t smtc_board_leds[LR11XX_TRACKER_LED_COUNT] = { { .timer_initialized = false },
-                                                                          { .timer_initialized = false } };
+//static smtc_board_led_ctx_t smtc_board_leds[LR11XX_TRACKER_LED_COUNT] = { { .timer_initialized = false },
+//                                                                          { .timer_initialized = false } };
 
 /*!
  * @brief LR1110 Tracker Board led pulse periodic timer context init
  */
-static smtc_board_periodic_led_pulse_ctx_t smtc_board_periodic_led_pulse = { .timer_initialized = false };
+// static smtc_board_periodic_led_pulse_ctx_t smtc_board_periodic_led_pulse = { .timer_initialized = false };
 
 /*!
  * @brief LR1110 Tracker Board effect hall context init
  */
-static smtc_board_effect_hall_ctx_t smtc_board_effect_hall = { .timer_initialized = false };
+// static smtc_board_effect_hall_ctx_t smtc_board_effect_hall = { .timer_initialized = false };
+
+#ifndef HAL_RADIO_SPI_ID
+#define HAL_RADIO_SPI_ID 0
+#endif
 
 static lr11xx_hal_context_t radio_context = {
-    .nss    = SMTC_RADIO_NSS,
-    .busy   = SMTC_RADIO_BUSY,
-    .reset  = SMTC_RADIO_NRST,
+//    .nss    = SMTC_RADIO_NSS,
+//    .busy   = SMTC_RADIO_BUSY,
+//    .reset  = SMTC_RADIO_NRST,
     .spi_id = HAL_RADIO_SPI_ID,
 };
 
@@ -157,21 +161,21 @@ static ralf_t local_ralf = { 0 };
  *
  * @param context Context used to retrieve the index of the relevant LED.
  */
-static void on_led_timer_event( void* context );
+// static void on_led_timer_event( void* context );
 
 /*!
  * @brief Periodic timer timeout callback
  *
  * @param context Context used to retrieve the index of the relevant LED.
  */
-static void on_periodic_timer_event( void* context );
+// static void on_periodic_timer_event( void* context );
 
 /*!
  * @brief Pulse timer timeout callback
  *
  * @param context Context not used here
  */
-static void on_effect_hall_timer_event( void* context );
+// static void on_effect_hall_timer_event( void* context );
 
 /*
  * -----------------------------------------------------------------------------
@@ -276,67 +280,107 @@ void smtc_board_gnss_postscan( void )
     smtc_board_lna_off( );
 }
 
-void smtc_board_lna_init( void ) { hal_gpio_init_out( RADIO_LNA_CTRL, 0 ); }
+void smtc_board_lna_init( void ) {
+   printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+   // hal_gpio_init_out( RADIO_LNA_CTRL, 0 );
+}
 
-void smtc_board_lna_deinit( void ) { hal_gpio_deinit( RADIO_LNA_CTRL ); }
+void smtc_board_lna_deinit( void ) {
+       printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+//       hal_gpio_deinit( RADIO_LNA_CTRL );
+}
 
-void smtc_board_lna_on( void ) { hal_gpio_set_value( RADIO_LNA_CTRL, 1 ); }
+void smtc_board_lna_on( void ) {
+       printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+       // hal_gpio_set_value( RADIO_LNA_CTRL, 1 );
+}
 
-void smtc_board_lna_off( void ) { hal_gpio_set_value( RADIO_LNA_CTRL, 0 ); }
+void smtc_board_lna_off( void ) {
+       printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+//       hal_gpio_set_value( RADIO_LNA_CTRL, 0 );
+}
 
 void smtc_board_spdt_2g4_init( void )
 {
-    hal_gpio_init_out( VCC_SWITCH_WIFI_BLE, 0 );
-    hal_gpio_init_out( SWITCH_WIFI_BLE, 1 );  // Wi-Fi by default
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+//    hal_gpio_init_out( VCC_SWITCH_WIFI_BLE, 0 );
+//    hal_gpio_init_out( SWITCH_WIFI_BLE, 1 );  // Wi-Fi by default
 }
 
 void smtc_board_spdt_2g4_deinit( void )
 {
-    hal_gpio_deinit( VCC_SWITCH_WIFI_BLE );
-    hal_gpio_deinit( SWITCH_WIFI_BLE );
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+//    hal_gpio_deinit( VCC_SWITCH_WIFI_BLE );
+//    hal_gpio_deinit( SWITCH_WIFI_BLE );
 }
 
-void smtc_board_spdt_2g4_on( void ) { hal_gpio_set_value( VCC_SWITCH_WIFI_BLE, 1 ); }
+void smtc_board_spdt_2g4_on( void ) {
+       printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+       // hal_gpio_set_value( VCC_SWITCH_WIFI_BLE, 1 );
+}
 
-void smtc_board_spdt_2g4_off( void ) { hal_gpio_set_value( VCC_SWITCH_WIFI_BLE, 0 ); }
+void smtc_board_spdt_2g4_off( void ) {
+       printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+       // hal_gpio_set_value( VCC_SWITCH_WIFI_BLE, 0 );
+}
 
 void smtc_board_set_wifi_antenna( void )
 {
     /* SWITCH_WIFI_BLE_Pin = 1 ==> Wi-Fi */
-    hal_gpio_set_value( SWITCH_WIFI_BLE, 1 );
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+    // hal_gpio_set_value( SWITCH_WIFI_BLE, 1 );
 }
 
 void smtc_board_set_ble_antenna( void )
 {
     /* SWITCH_WIFI_BLE_Pin = 0 ==> BLE */
-    hal_gpio_set_value( SWITCH_WIFI_BLE, 0 );
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+//    hal_gpio_set_value( SWITCH_WIFI_BLE, 0 );
 }
 
-void smtc_board_vcc_sensors_init( void ) { hal_gpio_init_out( VCC_SENSORS_MCU, 0 ); }
+void smtc_board_vcc_sensors_init( void ) {
+       printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+//       hal_gpio_init_out( VCC_SENSORS_MCU, 0 );
+}
 
-void smtc_board_vcc_sensors_deinit( void ) { hal_gpio_deinit( VCC_SENSORS_MCU ); }
+void smtc_board_vcc_sensors_deinit( void ) {
+       printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+//       hal_gpio_deinit( VCC_SENSORS_MCU );
+}
 
-void smtc_board_vcc_sensors_on( void ) { hal_gpio_set_value( VCC_SENSORS_MCU, 1 ); }
+void smtc_board_vcc_sensors_on( void ) {
+       printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+       // hal_gpio_set_value( VCC_SENSORS_MCU, 1 );
+}
 
-void smtc_board_vcc_sensors_off( void ) { hal_gpio_set_value( VCC_SENSORS_MCU, 0 ); }
+void smtc_board_vcc_sensors_off( void ) {
+   printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+//   hal_gpio_set_value( VCC_SENSORS_MCU, 0 );
+}
 
 void smtc_board_spdt_gnss_init( void )
 {
-    hal_gpio_init_out( GPS_SWITCH, 0 );  // PCB Antenna by default
+      printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+      // hal_gpio_init_out( GPS_SWITCH, 0 );  // PCB Antenna by default
 }
 
-void smtc_board_spdt_gnss_deinit( void ) { hal_gpio_deinit( GPS_SWITCH ); }
+void smtc_board_spdt_gnss_deinit( void ) {
+       printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+       // hal_gpio_deinit( GPS_SWITCH );
+}
 
 void smtc_board_set_gnss_patch_antenna( void )
 {
     /* GPS_SWITCH = 1 ==> PATCH */
-    hal_gpio_set_value( GPS_SWITCH, 1 );
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+    // hal_gpio_set_value( GPS_SWITCH, 1 );
 }
 
 void smtc_board_set_gnss_pcb_antenna( void )
 {
     /* GPS_SWITCH = 0 ==> PCB */
-    hal_gpio_set_value( GPS_SWITCH, 0 );
+   printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+   // hal_gpio_set_value( GPS_SWITCH, 0 );
 }
 
 void smtc_board_select_gnss_antenna( smtc_board_gnss_antenna_t antenna )
@@ -374,6 +418,8 @@ void smtc_board_hall_effect_enable( bool enable )
 
 void smtc_board_hall_effect_enable_for_duration( uint32_t duration_ms )
 {
+       printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     if( smtc_board_effect_hall.timer_initialized )
     {
         if( timer_is_started( &smtc_board_effect_hall.effect_hall_timer ) )
@@ -391,10 +437,13 @@ void smtc_board_hall_effect_enable_for_duration( uint32_t duration_ms )
     timer_start( &smtc_board_effect_hall.effect_hall_timer );
 
     smtc_board_hall_effect_enable( true );
+    #endif
 }
 
 void smtc_board_hall_effect_stop_timer( void )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     if( smtc_board_effect_hall.timer_initialized )
     {
         if( timer_is_started( &smtc_board_effect_hall.effect_hall_timer ) )
@@ -404,6 +453,8 @@ void smtc_board_hall_effect_stop_timer( void )
     }
 
     smtc_board_hall_effect_enable( false );
+#endif
+
 }
 
 bool smtc_board_is_ready( void ) { return smtc_board_ready; }
@@ -413,11 +464,14 @@ void smtc_board_set_ready( bool ready ) { smtc_board_ready = ready; }
 void smtc_board_measure_battery_drop( uint8_t stack_id, smtc_modem_region_t region, int32_t* drop,
                                       uint32_t* time_recovery )
 {
-    smtc_modem_return_code_t modem_return_code = SMTC_MODEM_RC_OK;
-    uint32_t                 relaxed_voltage = 0;
-    uint32_t                 tick_vdrop      = 0;
+//    smtc_modem_return_code_t modem_return_code = SMTC_MODEM_RC_OK;
+//    uint32_t                 relaxed_voltage = 0;
+//    uint32_t                 tick_vdrop      = 0;
 
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     relaxed_voltage = smtc_modem_hal_get_voltage( ) * 20;
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 
     /* Enter in test mode */
     modem_return_code = smtc_modem_test_start( );
@@ -454,16 +508,21 @@ void smtc_board_measure_battery_drop( uint8_t stack_id, smtc_modem_region_t regi
 
     /* Wait the drop */
     hal_mcu_delay_ms( 2000 );
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 
     /* Measure the drop */
     *drop = relaxed_voltage - smtc_modem_hal_get_voltage( ) * 20;
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 
     /* Leave the test mode */
     smtc_modem_test_nop( );
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
     smtc_modem_test_stop( );
 
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
     HAL_DBG_TRACE_INFO( "Battery voltage drop = %d mV\n", *drop );
 
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
     if( *drop > 0 )
     {
         *time_recovery = 0;
@@ -477,10 +536,14 @@ void smtc_board_measure_battery_drop( uint8_t stack_id, smtc_modem_region_t regi
 
         HAL_DBG_TRACE_INFO( "Voltage recovery time = %d ms\n", *time_recovery );
     }
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#endif
 }
 
 void smtc_board_led_set( uint32_t led_mask, bool turn_on )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     /* If a pulse timer is running on one of the requested LEDs, it
      *  must be stopped to avoid conflicting with the requested LED state. */
     lr11xx_tracker_led_t led = LR11XX_TRACKER_LED_TX;
@@ -502,12 +565,16 @@ void smtc_board_led_set( uint32_t led_mask, bool turn_on )
     {
         leds_off( led_mask );
     }
+#endif
 }
 
 uint32_t smtc_board_led_get( uint32_t led_mask ) { return leds_get_state( led_mask ); }
 
 void smtc_board_led_pulse( uint32_t led_mask, bool turn_on, uint32_t duration_ms )
 {
+   printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+
+#if 0
     lr11xx_tracker_led_t led = LR11XX_TRACKER_LED_TX;
     for( led = LR11XX_TRACKER_LED_TX; led < LR11XX_TRACKER_LED_COUNT; led++ )
     {
@@ -538,10 +605,14 @@ void smtc_board_led_pulse( uint32_t led_mask, bool turn_on, uint32_t duration_ms
     {
         leds_off( led_mask );
     }
+#endif
 }
 
 void smtc_board_start_periodic_led_pulse( uint32_t led_mask, uint32_t pulse_duration_ms, uint32_t period_ms )
 {
+   printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
+
     if( period_ms > pulse_duration_ms )
     {
         smtc_board_periodic_led_pulse.led_mask          = led_mask;
@@ -566,9 +637,14 @@ void smtc_board_start_periodic_led_pulse( uint32_t led_mask, uint32_t pulse_dura
         timer_set_value( &smtc_board_periodic_led_pulse.periodic_timer, period_ms - pulse_duration_ms );
         timer_start( &smtc_board_periodic_led_pulse.periodic_timer );
     }
+#endif
 }
 
-void smtc_board_stop_periodic_led_pulse( void ) { timer_stop( &smtc_board_periodic_led_pulse.periodic_timer ); }
+void smtc_board_stop_periodic_led_pulse( void ) {
+       printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+
+       // timer_stop( &smtc_board_periodic_led_pulse.periodic_timer );
+}
 
 uint32_t smtc_board_get_led_tx_mask( void ) { return LED_TX_MASK; }
 
@@ -604,6 +680,8 @@ void smtc_board_reset_radio( const void* context ) { lr11xx_hal_reset( context )
 
 void smtc_board_set_radio_in_dfu( const void* context )
 {
+   printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     const lr11xx_hal_context_t* lr11xx_context = ( const lr11xx_hal_context_t* ) context;
 
     /* Force dio0 to 0 */
@@ -619,21 +697,26 @@ void smtc_board_set_radio_in_dfu( const void* context )
 
     /* reinit dio0 */
     hal_gpio_init_in( lr11xx_context->busy, HAL_GPIO_PULL_MODE_NONE, HAL_GPIO_IRQ_MODE_OFF, NULL );
+#endif
 }
 
 uint8_t smtc_board_read_busy_pin( const void* context )
 {
+   printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     const lr11xx_hal_context_t* lr11xx_context = ( const lr11xx_hal_context_t* ) context;
 
     hal_mcu_wait_us( 1000000 );
     return ( uint8_t ) hal_gpio_get_value( lr11xx_context->busy );
+#endif
+    return 0;
 }
 
 /*
  * -----------------------------------------------------------------------------
  * --- PRIVATE FUNCTIONS DEFINITION --------------------------------------------
  */
-
+#if 0
 void on_led_timer_event( void* context )
 {
     lr11xx_tracker_led_t led      = ( lr11xx_tracker_led_t ) context;
@@ -651,9 +734,13 @@ void on_periodic_timer_event( void* context )
 
 static void on_effect_hall_timer_event( void* context )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     HAL_DBG_TRACE_PRINTF( "Stop hall effect sensor\n" );
     smtc_board_hall_effect_enable( false );
     timer_stop( &smtc_board_effect_hall.effect_hall_timer );
+#endif
 }
+#endif
 
 /* --- EOF ------------------------------------------------------------------ */

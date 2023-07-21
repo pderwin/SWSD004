@@ -47,6 +47,7 @@ extern "C" {
 #include <stdint.h>
 
 #include "smtc_hal.h"
+#include "smtc_hal_flash_mapping.h"
 
 /*
  * -----------------------------------------------------------------------------

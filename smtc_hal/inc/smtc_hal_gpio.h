@@ -45,7 +45,7 @@ extern "C" {
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "smtc_hal_gpio_pin_names.h"
+// #include "smtc_hal_gpio_pin_names.h"
 
 /*
  * -----------------------------------------------------------------------------
@@ -61,6 +61,7 @@ extern "C" {
  * -----------------------------------------------------------------------------
  * --- PUBLIC TYPES ------------------------------------------------------------
  */
+typedef enum { A,B } hal_gpio_pin_names_t;
 
 /*!
  * @brief GPIO IRQ data context
@@ -101,6 +102,7 @@ typedef enum gpio_irq_mode_e
     HAL_GPIO_IRQ_MODE_FALLING        = 2,
     HAL_GPIO_IRQ_MODE_RISING_FALLING = 3,
 } hal_gpio_irq_mode_t;
+
 
 /*
  * -----------------------------------------------------------------------------

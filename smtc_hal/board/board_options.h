@@ -46,7 +46,6 @@ extern "C" {
 #elif defined LR1110TRK1XKS
 #include "lr1110trk1xks/lr1110trk1xks_board_options.h"
 #else
-#error "Unknown board"
 #endif  // BOARD
 
 /*

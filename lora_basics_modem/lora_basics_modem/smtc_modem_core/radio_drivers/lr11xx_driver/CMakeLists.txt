@@ -6,4 +6,5 @@ zephyr_library_sources(
       src/lr11xx_radio.c
       src/lr11xx_regmem.c
       src/lr11xx_system.c
+      src/lr11xx_wifi.c
       )

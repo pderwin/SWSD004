@@ -123,7 +123,8 @@ extern "C" {
 /**
  * @brief LR11XX radio firmware
  */
-#define LR11XX_FW_VERSION 0x0307
+// #define LR11XX_FW_VERSION 0x0307
+#define LR11XX_FW_VERSION 0x0303
 
 /*!
  * @brief Time during which a LED is turned on when a TX or RX event occurs, in [ms]

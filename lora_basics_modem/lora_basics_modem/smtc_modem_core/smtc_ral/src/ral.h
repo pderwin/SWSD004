@@ -43,7 +43,7 @@ extern "C" {
  * -----------------------------------------------------------------------------
  * --- DEPENDENCIES ------------------------------------------------------------
  */
-
+#include <zephyr/kernel.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include "ral_defs.h"

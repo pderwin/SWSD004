@@ -57,11 +57,13 @@ void lis2de12_int1_irq_handler( void* obj );
 /*!
  * Hardware IRQ INT1 callback initialization
  */
+#if 0
 static hal_gpio_irq_t lis2de12_int1 = {
     .pin      = ACC_INT1,
     .callback = lis2de12_int1_irq_handler,
     .context  = NULL,
 };
+#endif
 
 /**
  * @defgroup  LIS2DE12
@@ -160,6 +162,8 @@ uint8_t accelerometer_init( uint8_t irq_active )
 
 uint8_t is_accelerometer_detected_moved( void )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     uint32_t            ret;
     lis2de12_int1_src_t int1_gen_source;
 
@@ -180,6 +184,7 @@ uint8_t is_accelerometer_detected_moved( void )
 
         return 1;
     }
+#endif
     return 0;
 }
 
@@ -202,6 +207,8 @@ bool get_accelerometer_irq1_state( void )
 
 uint8_t is_accelerometer_double_tap_detected( void )
 {
+   printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_click_src_t click_src;
 
     lis2de12_tap_source_get( &click_src );
@@ -210,11 +217,14 @@ uint8_t is_accelerometer_double_tap_detected( void )
     {
         return 1;
     }
+#endif
     return 0;
 }
 
 void acc_read_raw_data( void )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_reg_t reg;
     bool           data_read = false;
 
@@ -238,6 +248,7 @@ void acc_read_raw_data( void )
             data_read = true;
         }
     }
+#endif
 }
 
 int16_t acc_get_raw_x( void ) { return acceleration_mg[0]; }
@@ -248,6 +259,8 @@ int16_t acc_get_raw_z( void ) { return acceleration_mg[2]; }
 
 int16_t acc_get_temperature( void )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     uint16_t temperature;
     uint8_t  is_ready = 0;
 
@@ -257,6 +270,8 @@ int16_t acc_get_temperature( void )
 
     /* Build the raw tmp */
     return ( int16_t ) temperature;
+#endif
+    return 0;
 }
 
 /**
@@ -270,9 +285,13 @@ int16_t acc_get_temperature( void )
  */
 int32_t lis2de12_read_reg( uint8_t reg, uint8_t* data, uint16_t len )
 {
+   printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     int32_t ret;
     ret = hal_i2c_read_buffer( 1, LIS2DE12_I2C_ADD_H, reg, data, len );
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -286,9 +305,13 @@ int32_t lis2de12_read_reg( uint8_t reg, uint8_t* data, uint16_t len )
  */
 int32_t lis2de12_write_reg( uint8_t reg, uint8_t* data, uint16_t len )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     int32_t ret;
     ret = hal_i2c_write_buffer( 1, LIS2DE12_I2C_ADD_H, reg, data, len );
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -349,6 +372,8 @@ int32_t lis2de12_temp_status_reg_get( uint8_t* buff )
   */
 int32_t lis2de12_temp_data_ready_get( uint8_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_status_reg_aux_t status_reg_aux;
     int32_t                   ret;
 
@@ -356,6 +381,8 @@ int32_t lis2de12_temp_data_ready_get( uint8_t* val )
     *val = status_reg_aux.tda;
 
     return ret;
+#endif
+    return 0;
 }
 /**
   * @brief  Temperature data overrun.[get]
@@ -367,6 +394,8 @@ int32_t lis2de12_temp_data_ready_get( uint8_t* val )
   */
 int32_t lis2de12_temp_data_ovr_get( uint8_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_status_reg_aux_t status_reg_aux;
     int32_t                   ret;
 
@@ -374,6 +403,8 @@ int32_t lis2de12_temp_data_ovr_get( uint8_t* val )
     *val = status_reg_aux.tor;
 
     return ret;
+#endif
+    return 0;
 }
 /**
   * @brief  Temperature output value.[get]
@@ -385,6 +416,8 @@ int32_t lis2de12_temp_data_ovr_get( uint8_t* val )
   */
 int32_t lis2de12_temperature_raw_get( uint16_t* raw_temp )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     int32_t ret;
     uint8_t buf_tmp;
 
@@ -395,6 +428,8 @@ int32_t lis2de12_temperature_raw_get( uint16_t* raw_temp )
     *raw_temp += buf_tmp << 8;
 
     return ret;
+#endif
+    return 0;
 }
 /**
   * @brief  Temperature sensor enable.[set]
@@ -428,6 +463,8 @@ int32_t lis2de12_temperature_meas_set( lis2de12_temp_en_t val )
   */
 int32_t lis2de12_temperature_meas_get( lis2de12_temp_en_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_temp_cfg_reg_t temp_cfg_reg;
     int32_t                 ret;
 
@@ -445,6 +482,8 @@ int32_t lis2de12_temperature_meas_get( lis2de12_temp_en_t* val )
         break;
     }
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -457,6 +496,8 @@ int32_t lis2de12_temperature_meas_get( lis2de12_temp_en_t* val )
   */
 int32_t lis2de12_data_rate_set( lis2de12_odr_t val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_ctrl_reg1_t ctrl_reg1;
     int32_t              ret;
 
@@ -468,6 +509,8 @@ int32_t lis2de12_data_rate_set( lis2de12_odr_t val )
         ret            = lis2de12_write_reg( LIS2DE12_CTRL_REG1, ( uint8_t* ) &ctrl_reg1, 1 );
     }
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -480,6 +523,8 @@ int32_t lis2de12_data_rate_set( lis2de12_odr_t val )
   */
 int32_t lis2de12_data_rate_get( lis2de12_odr_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_ctrl_reg1_t ctrl_reg1;
     int32_t              ret;
 
@@ -521,6 +566,8 @@ int32_t lis2de12_data_rate_get( lis2de12_odr_t* val )
         break;
     }
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -534,6 +581,8 @@ int32_t lis2de12_data_rate_get( lis2de12_odr_t* val )
   */
 int32_t lis2de12_high_pass_on_outputs_set( uint8_t val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_ctrl_reg2_t ctrl_reg2;
     int32_t              ret;
 
@@ -544,6 +593,8 @@ int32_t lis2de12_high_pass_on_outputs_set( uint8_t val )
         ret           = lis2de12_write_reg( LIS2DE12_CTRL_REG2, ( uint8_t* ) &ctrl_reg2, 1 );
     }
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -557,6 +608,8 @@ int32_t lis2de12_high_pass_on_outputs_set( uint8_t val )
   */
 int32_t lis2de12_high_pass_on_outputs_get( uint8_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_ctrl_reg2_t ctrl_reg2;
     int32_t              ret;
 
@@ -564,6 +617,8 @@ int32_t lis2de12_high_pass_on_outputs_get( uint8_t* val )
     *val = ( uint8_t ) ctrl_reg2.fds;
 
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -610,6 +665,8 @@ int32_t lis2de12_high_pass_bandwidth_set( lis2de12_hpcf_t val )
   */
 int32_t lis2de12_high_pass_bandwidth_get( lis2de12_hpcf_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_ctrl_reg2_t ctrl_reg2;
     int32_t              ret;
 
@@ -633,6 +690,8 @@ int32_t lis2de12_high_pass_bandwidth_get( lis2de12_hpcf_t* val )
         break;
     }
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -667,8 +726,10 @@ int32_t lis2de12_high_pass_mode_set( lis2de12_hpm_t val )
   */
 int32_t lis2de12_high_pass_mode_get( lis2de12_hpm_t* val )
 {
-    lis2de12_ctrl_reg2_t ctrl_reg2;
-    int32_t              ret;
+       printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
+       lis2de12_ctrl_reg2_t ctrl_reg2;
+       int32_t              ret;
 
     ret = lis2de12_read_reg( LIS2DE12_CTRL_REG2, ( uint8_t* ) &ctrl_reg2, 1 );
     switch( ctrl_reg2.hpm )
@@ -690,6 +751,8 @@ int32_t lis2de12_high_pass_mode_get( lis2de12_hpm_t* val )
         break;
     }
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -724,6 +787,8 @@ int32_t lis2de12_full_scale_set( lis2de12_fs_t val )
   */
 int32_t lis2de12_full_scale_get( lis2de12_fs_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_ctrl_reg4_t ctrl_reg4;
     int32_t              ret;
 
@@ -747,6 +812,8 @@ int32_t lis2de12_full_scale_get( lis2de12_fs_t* val )
         break;
     }
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -781,6 +848,8 @@ int32_t lis2de12_block_data_update_set( uint8_t val )
   */
 int32_t lis2de12_block_data_update_get( uint8_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_ctrl_reg4_t ctrl_reg4;
     int32_t              ret;
 
@@ -788,6 +857,8 @@ int32_t lis2de12_block_data_update_get( uint8_t* val )
     *val = ( uint8_t ) ctrl_reg4.bdu;
 
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -831,6 +902,8 @@ int32_t lis2de12_filter_reference_get( uint8_t* buff )
   */
 int32_t lis2de12_xl_data_ready_get( uint8_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_status_reg_t status_reg;
     int32_t               ret;
 
@@ -838,6 +911,8 @@ int32_t lis2de12_xl_data_ready_get( uint8_t* val )
     *val = status_reg.zyxda;
 
     return ret;
+#endif
+    return 0;
 }
 /**
   * @brief  Acceleration set of data overrun.[get]
@@ -849,6 +924,8 @@ int32_t lis2de12_xl_data_ready_get( uint8_t* val )
   */
 int32_t lis2de12_xl_data_ovr_get( uint8_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_status_reg_t status_reg;
     int32_t               ret;
 
@@ -856,6 +933,8 @@ int32_t lis2de12_xl_data_ovr_get( uint8_t* val )
     *val = status_reg.zyxor;
 
     return ret;
+#endif
+    return 0;
 }
 /**
   * @brief  Acceleration output value.[get]
@@ -974,6 +1053,8 @@ int32_t lis2de12_self_test_set( lis2de12_st_t val )
   */
 int32_t lis2de12_self_test_get( lis2de12_st_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_ctrl_reg4_t ctrl_reg4;
     int32_t              ret;
 
@@ -994,6 +1075,8 @@ int32_t lis2de12_self_test_get( lis2de12_st_t* val )
         break;
     }
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -1028,6 +1111,8 @@ int32_t lis2de12_boot_set( uint8_t val )
   */
 int32_t lis2de12_boot_get( uint8_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_ctrl_reg5_t ctrl_reg5;
     int32_t              ret;
 
@@ -1035,6 +1120,8 @@ int32_t lis2de12_boot_get( uint8_t* val )
     *val = ( uint8_t ) ctrl_reg5.boot;
 
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -1144,6 +1231,8 @@ int32_t lis2de12_int1_gen_threshold_set( uint8_t val )
   */
 int32_t lis2de12_int1_gen_threshold_get( uint8_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_int1_ths_t int1_ths;
     int32_t             ret;
 
@@ -1151,6 +1240,8 @@ int32_t lis2de12_int1_gen_threshold_get( uint8_t* val )
     *val = ( uint8_t ) int1_ths.ths;
 
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -1187,13 +1278,17 @@ int32_t lis2de12_int1_gen_duration_set( uint8_t val )
   */
 int32_t lis2de12_int1_gen_duration_get( uint8_t* val )
 {
-    lis2de12_int1_duration_t int1_duration;
+       printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
+lis2de12_int1_duration_t int1_duration;
     int32_t                  ret;
 
     ret  = lis2de12_read_reg( LIS2DE12_INT1_DURATION, ( uint8_t* ) &int1_duration, 1 );
     *val = ( uint8_t ) int1_duration.d;
 
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -1288,6 +1383,8 @@ int32_t lis2de12_int2_gen_threshold_set( uint8_t val )
   */
 int32_t lis2de12_int2_gen_threshold_get( uint8_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_int2_ths_t int2_ths;
     int32_t             ret;
 
@@ -1295,6 +1392,8 @@ int32_t lis2de12_int2_gen_threshold_get( uint8_t* val )
     *val = ( uint8_t ) int2_ths.ths;
 
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -1331,6 +1430,8 @@ int32_t lis2de12_int2_gen_duration_set( uint8_t val )
   */
 int32_t lis2de12_int2_gen_duration_get( uint8_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_int2_duration_t int2_duration;
     int32_t                  ret;
 
@@ -1338,6 +1439,8 @@ int32_t lis2de12_int2_gen_duration_get( uint8_t* val )
     *val = ( uint8_t ) int2_duration.d;
 
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -1384,6 +1487,8 @@ int32_t lis2de12_high_pass_int_conf_set( lis2de12_hp_t val )
   */
 int32_t lis2de12_high_pass_int_conf_get( lis2de12_hp_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_ctrl_reg2_t ctrl_reg2;
     int32_t              ret;
 
@@ -1419,6 +1524,8 @@ int32_t lis2de12_high_pass_int_conf_get( lis2de12_hp_t* val )
         break;
     }
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -1485,6 +1592,8 @@ int32_t lis2de12_int2_pin_detect_4d_set( uint8_t val )
   */
 int32_t lis2de12_int2_pin_detect_4d_get( uint8_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_ctrl_reg5_t ctrl_reg5;
     int32_t              ret;
 
@@ -1492,6 +1601,8 @@ int32_t lis2de12_int2_pin_detect_4d_get( uint8_t* val )
     *val = ( uint8_t ) ctrl_reg5.d4d_int2;
 
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -1530,6 +1641,8 @@ int32_t lis2de12_int2_pin_notification_mode_set( lis2de12_lir_int2_t val )
   */
 int32_t lis2de12_int2_pin_notification_mode_get( lis2de12_lir_int2_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_ctrl_reg5_t ctrl_reg5;
     int32_t              ret;
 
@@ -1547,6 +1660,8 @@ int32_t lis2de12_int2_pin_notification_mode_get( lis2de12_lir_int2_t* val )
         break;
     }
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -1583,6 +1698,8 @@ int32_t lis2de12_int1_pin_detect_4d_set( uint8_t val )
   */
 int32_t lis2de12_int1_pin_detect_4d_get( uint8_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_ctrl_reg5_t ctrl_reg5;
     int32_t              ret;
 
@@ -1590,6 +1707,8 @@ int32_t lis2de12_int1_pin_detect_4d_get( uint8_t* val )
     *val = ( uint8_t ) ctrl_reg5.d4d_int1;
 
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -1626,6 +1745,8 @@ int32_t lis2de12_int1_pin_notification_mode_set( lis2de12_lir_int1_t val )
   */
 int32_t lis2de12_int1_pin_notification_mode_get( lis2de12_lir_int1_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_ctrl_reg5_t ctrl_reg5;
     int32_t              ret;
 
@@ -1643,6 +1764,8 @@ int32_t lis2de12_int1_pin_notification_mode_get( lis2de12_lir_int1_t* val )
         break;
     }
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -1718,6 +1841,8 @@ int32_t lis2de12_fifo_set( uint8_t val )
   */
 int32_t lis2de12_fifo_get( uint8_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_ctrl_reg5_t ctrl_reg5;
     int32_t              ret;
 
@@ -1725,6 +1850,8 @@ int32_t lis2de12_fifo_get( uint8_t* val )
     *val = ( uint8_t ) ctrl_reg5.fifo_en;
 
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -1759,6 +1886,8 @@ int32_t lis2de12_fifo_watermark_set( uint8_t val )
   */
 int32_t lis2de12_fifo_watermark_get( uint8_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_fifo_ctrl_reg_t fifo_ctrl_reg;
     int32_t                  ret;
 
@@ -1766,6 +1895,8 @@ int32_t lis2de12_fifo_watermark_get( uint8_t* val )
     *val = ( uint8_t ) fifo_ctrl_reg.fth;
 
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -1800,6 +1931,8 @@ int32_t lis2de12_fifo_trigger_event_set( lis2de12_tr_t val )
   */
 int32_t lis2de12_fifo_trigger_event_get( lis2de12_tr_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_fifo_ctrl_reg_t fifo_ctrl_reg;
     int32_t                  ret;
 
@@ -1817,6 +1950,8 @@ int32_t lis2de12_fifo_trigger_event_get( lis2de12_tr_t* val )
         break;
     }
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -1851,6 +1986,8 @@ int32_t lis2de12_fifo_mode_set( lis2de12_fm_t val )
   */
 int32_t lis2de12_fifo_mode_get( lis2de12_fm_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_fifo_ctrl_reg_t fifo_ctrl_reg;
     int32_t                  ret;
 
@@ -1874,6 +2011,8 @@ int32_t lis2de12_fifo_mode_get( lis2de12_fm_t* val )
         break;
     }
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -1900,6 +2039,8 @@ int32_t lis2de12_fifo_status_get( lis2de12_fifo_src_reg_t* val )
   */
 int32_t lis2de12_fifo_data_level_get( uint8_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_fifo_src_reg_t fifo_src_reg;
     int32_t                 ret;
 
@@ -1907,6 +2048,8 @@ int32_t lis2de12_fifo_data_level_get( uint8_t* val )
     *val = ( uint8_t ) fifo_src_reg.fss;
 
     return ret;
+#endif
+    return 0;
 }
 /**
   * @brief  Empty FIFO status flag.[get]
@@ -1918,6 +2061,8 @@ int32_t lis2de12_fifo_data_level_get( uint8_t* val )
   */
 int32_t lis2de12_fifo_empty_flag_get( uint8_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_fifo_src_reg_t fifo_src_reg;
     int32_t                 ret;
 
@@ -1925,6 +2070,8 @@ int32_t lis2de12_fifo_empty_flag_get( uint8_t* val )
     *val = ( uint8_t ) fifo_src_reg.empty;
 
     return ret;
+#endif
+    return 0;
 }
 /**
   * @brief  FIFO overrun status flag.[get]
@@ -1936,6 +2083,8 @@ int32_t lis2de12_fifo_empty_flag_get( uint8_t* val )
   */
 int32_t lis2de12_fifo_ovr_flag_get( uint8_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_fifo_src_reg_t fifo_src_reg;
     int32_t                 ret;
 
@@ -1943,6 +2092,8 @@ int32_t lis2de12_fifo_ovr_flag_get( uint8_t* val )
     *val = ( uint8_t ) fifo_src_reg.ovrn_fifo;
 
     return ret;
+#endif
+    return 0;
 }
 /**
   * @brief  FIFO watermark status.[get]
@@ -1954,6 +2105,8 @@ int32_t lis2de12_fifo_ovr_flag_get( uint8_t* val )
   */
 int32_t lis2de12_fifo_fth_flag_get( uint8_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_fifo_src_reg_t fifo_src_reg;
     int32_t                 ret;
 
@@ -1961,6 +2114,8 @@ int32_t lis2de12_fifo_fth_flag_get( uint8_t* val )
     *val = ( uint8_t ) fifo_src_reg.wtm;
 
     return ret;
+#endif
+    return 0;
 }
 /**
  * @}
@@ -2052,6 +2207,8 @@ int32_t lis2de12_tap_threshold_set( uint8_t val )
   */
 int32_t lis2de12_tap_threshold_get( uint8_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_click_ths_t click_ths;
     int32_t              ret;
 
@@ -2059,6 +2216,8 @@ int32_t lis2de12_tap_threshold_get( uint8_t* val )
     *val = ( uint8_t ) click_ths.ths;
 
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -2099,6 +2258,8 @@ int32_t lis2de12_tap_notification_mode_set( lis2de12_lir_click_t val )
   */
 int32_t lis2de12_tap_notification_mode_get( lis2de12_lir_click_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_click_ths_t click_ths;
     int32_t              ret;
 
@@ -2116,6 +2277,8 @@ int32_t lis2de12_tap_notification_mode_get( lis2de12_lir_click_t* val )
         break;
     }
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -2154,6 +2317,8 @@ int32_t lis2de12_shock_dur_set( uint8_t val )
   */
 int32_t lis2de12_shock_dur_get( uint8_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_time_limit_t time_limit;
     int32_t               ret;
 
@@ -2161,6 +2326,8 @@ int32_t lis2de12_shock_dur_get( uint8_t* val )
     *val = ( uint8_t ) time_limit.tli;
 
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -2201,6 +2368,8 @@ int32_t lis2de12_quiet_dur_set( uint8_t val )
   */
 int32_t lis2de12_quiet_dur_get( uint8_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_time_latency_t time_latency;
     int32_t                 ret;
 
@@ -2208,6 +2377,8 @@ int32_t lis2de12_quiet_dur_get( uint8_t* val )
     *val = ( uint8_t ) time_latency.tla;
 
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -2248,6 +2419,8 @@ int32_t lis2de12_double_tap_timeout_set( uint8_t val )
   */
 int32_t lis2de12_double_tap_timeout_get( uint8_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_time_window_t time_window;
     int32_t                ret;
 
@@ -2255,6 +2428,8 @@ int32_t lis2de12_double_tap_timeout_get( uint8_t* val )
     *val = ( uint8_t ) time_window.tw;
 
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -2306,6 +2481,8 @@ int32_t lis2de12_act_threshold_set( uint8_t val )
   */
 int32_t lis2de12_act_threshold_get( uint8_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_act_ths_t act_ths;
     int32_t            ret;
 
@@ -2313,6 +2490,8 @@ int32_t lis2de12_act_threshold_get( uint8_t* val )
     *val = ( uint8_t ) act_ths.acth;
 
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -2349,6 +2528,8 @@ int32_t lis2de12_act_timeout_set( uint8_t val )
   */
 int32_t lis2de12_act_timeout_get( uint8_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_act_dur_t act_dur;
     int32_t            ret;
 
@@ -2356,6 +2537,8 @@ int32_t lis2de12_act_timeout_get( uint8_t* val )
     *val = ( uint8_t ) act_dur.actd;
 
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -2403,6 +2586,8 @@ int32_t lis2de12_pin_sdo_sa0_mode_set( lis2de12_sdo_pu_disc_t val )
   */
 int32_t lis2de12_pin_sdo_sa0_mode_get( lis2de12_sdo_pu_disc_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_ctrl_reg0_t ctrl_reg0;
     int32_t              ret;
 
@@ -2420,6 +2605,8 @@ int32_t lis2de12_pin_sdo_sa0_mode_get( lis2de12_sdo_pu_disc_t* val )
         break;
     }
     return ret;
+#endif
+    return 0;
 }
 
 /**
@@ -2454,6 +2641,8 @@ int32_t lis2de12_spi_mode_set( lis2de12_sim_t val )
   */
 int32_t lis2de12_spi_mode_get( lis2de12_sim_t* val )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     lis2de12_ctrl_reg4_t ctrl_reg4;
     int32_t              ret;
 
@@ -2471,6 +2660,8 @@ int32_t lis2de12_spi_mode_get( lis2de12_sim_t* val )
         break;
     }
     return ret;
+#endif
+    return 0;
 }
 
 /***************************************************************************\
@@ -2479,7 +2670,10 @@ int32_t lis2de12_spi_mode_get( lis2de12_sim_t* val )
 
 static void accelerometer_irq1_init( void )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     hal_gpio_init_in( lis2de12_int1.pin, HAL_GPIO_PULL_MODE_DOWN, HAL_GPIO_IRQ_MODE_RISING, &lis2de12_int1 );
+#endif
 }
 
 void lis2de12_int1_irq_handler( void* obj )

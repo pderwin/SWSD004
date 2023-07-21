@@ -36,7 +36,7 @@
  * -----------------------------------------------------------------------------
  * --- DEPENDENCIES ------------------------------------------------------------
  */
-
+#include <zephyr/kernel.h>
 #include <stdint.h>   // C99 types
 #include <stdbool.h>  // bool type
 
@@ -254,13 +254,18 @@ smtc_modem_return_code_t smtc_modem_test_tx_hop( void )
 
 smtc_modem_return_code_t smtc_modem_test_nop( void )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
     if( modem_get_test_mode_status( ) == false )
     {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
         SMTC_MODEM_HAL_TRACE_WARNING( "TEST FUNCTION CANNOT BE CALLED: NOT IN TEST MODE\n" );
         return SMTC_MODEM_RC_INVALID;
     }
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
     rp_task_abort( modem_test_context.rp, modem_test_context.hook_id );
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
     smtc_modem_test_radio_reset( );
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
     return SMTC_MODEM_RC_OK;
 }
 
@@ -797,11 +802,15 @@ void modem_test_tx_callback( modem_test_context_t* context )
     }
     rp_task_t rp_task = { 0 };
 
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+
     rp_task.hook_id       = context->hook_id;
     rp_task.state         = RP_TASK_STATE_ASAP;
     rp_task.start_time_ms = smtc_modem_hal_get_time_in_ms( ) + 20;
 
     rp_radio_params_t radio_params = context->rp->radio_params[context->hook_id];
+
+    printk("%s %d params: %p freq: %d (from %p) \n", __func__, __LINE__, &radio_params, radio_params.tx.lora.rf_freq_in_hz, __builtin_return_address(0) );
 
     if( radio_params.pkt_type == RAL_PKT_TYPE_LORA )
     {
@@ -895,6 +904,9 @@ void test_mode_cw_callback_for_rp( void* rp_void )
     radio_planner_t* rp = ( radio_planner_t* ) rp_void;
     uint8_t          id = rp->radio_task_id;
     smtc_modem_hal_assert( ral_init( &( rp->radio->ral ) ) == RAL_STATUS_OK );
+
+    printk("%s %d call ralf_setup_lora id: %d (from %p) \n", __func__, __LINE__, id, __builtin_return_address(0) );
+
     smtc_modem_hal_assert( ralf_setup_lora( rp->radio, &rp->radio_params[id].tx.lora ) == RAL_STATUS_OK );
     smtc_modem_hal_assert( ral_set_tx_cw( &( rp->radio->ral ) ) == RAL_STATUS_OK );
 }

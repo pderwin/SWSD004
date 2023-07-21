@@ -63,7 +63,7 @@
 /*!
  * @brief Hardware INT IRQ callback initialization
  */
-static void hall_effect_irq_handler( void* obj );
+// static void hall_effect_irq_handler( void* obj );
 
 /*
  * -----------------------------------------------------------------------------
@@ -78,11 +78,13 @@ static volatile bool hall_effect_irq_state = false;
 /*!
  * @brief Hall Effect gpio irq definition
  */
+#if 0
 hal_gpio_irq_t hall_effect = {
     .pin      = EFFECT_HALL_OUT,
     .callback = hall_effect_irq_handler,
     .context  = NULL,
 };
+#endif
 
 /*
  * -----------------------------------------------------------------------------
@@ -91,6 +93,8 @@ hal_gpio_irq_t hall_effect = {
 
 void hall_effect_init( bool irq_enable )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     if( irq_enable == true )
     {
         hal_gpio_init_in( hall_effect.pin, HAL_GPIO_PULL_MODE_UP, HAL_GPIO_IRQ_MODE_FALLING, &hall_effect );
@@ -99,15 +103,25 @@ void hall_effect_init( bool irq_enable )
     {
         hal_gpio_init_in( hall_effect.pin, HAL_GPIO_PULL_MODE_UP, HAL_GPIO_IRQ_MODE_OFF, NULL );
     }
+#endif
 }
 
 void hall_effect_deinit( void )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     hal_gpio_irq_deatach( &hall_effect );
     hal_gpio_deinit( hall_effect.pin );
+#endif
 }
 
-uint8_t read_hall_effect_output( void ) { return hal_gpio_get_value( hall_effect.pin ); }
+uint8_t read_hall_effect_output( void ) {
+       printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
+       return hal_gpio_get_value( hall_effect.pin );
+#endif
+       return 0;
+}
 
 bool get_hall_effect_irq_state( void ) { return hall_effect_irq_state; }
 
@@ -122,10 +136,13 @@ void clear_hall_effect_irq_state( void )
  * --- PRIVATE FUNCTIONS DEFINITION --------------------------------------------
  */
 
+#if 0
 static void hall_effect_irq_handler( void* context )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
     leds_on( LED_RX_MASK );
     hall_effect_irq_state = true;
 }
+#endif
 
 /* --- EOF ------------------------------------------------------------------ */

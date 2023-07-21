@@ -87,6 +87,7 @@ static lr11xx_hal_context_t radio_context = {
  * --- PUBLIC FUNCTIONS DEFINITION ---------------------------------------------
  */
 
+
 void smtc_board_init_periph( void )
 {
     smtc_shield_lr11xx_init( );

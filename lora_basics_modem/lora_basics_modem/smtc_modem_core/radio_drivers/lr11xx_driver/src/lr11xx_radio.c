@@ -36,7 +36,7 @@
  * -----------------------------------------------------------------------------
  * --- DEPENDENCIES ------------------------------------------------------------
  */
-
+#include <zephyr/kernel.h>
 #include "lr11xx_radio.h"
 #include "lr11xx_regmem.h"
 #include "lr11xx_hal.h"
@@ -431,6 +431,9 @@ lr11xx_status_t lr11xx_radio_set_tx( const void* context, const uint32_t timeout
     return lr11xx_radio_set_tx_with_timeout_in_rtc_step( context, timeout_in_rtc_step );
 }
 
+uint32_t dump_set_tx;
+void debug_gpios (void);
+
 lr11xx_status_t lr11xx_radio_set_tx_with_timeout_in_rtc_step( const void* context, const uint32_t timeout_in_rtc_step )
 {
     lr11xx_status_t status = LR11XX_STATUS_ERROR;
@@ -474,6 +477,8 @@ lr11xx_status_t lr11xx_radio_set_rf_freq( const void* context, const uint32_t fr
         ( uint8_t ) ( freq_in_hz >> 8 ),
         ( uint8_t ) ( freq_in_hz >> 0 ),
     };
+
+    printk("%s %d f: %d (from %p) \n", __func__, __LINE__, freq_in_hz, __builtin_return_address(0) );
 
     return ( lr11xx_status_t ) lr11xx_hal_write( context, cbuffer, LR11XX_RADIO_SET_RF_FREQUENCY_CMD_LENGTH, 0, 0 );
 }
@@ -521,6 +526,8 @@ lr11xx_status_t lr11xx_radio_set_pkt_type( const void* context, const lr11xx_rad
         ( uint8_t ) ( LR11XX_RADIO_SET_PKT_TYPE_OC >> 0 ),
         ( uint8_t ) pkt_type,
     };
+
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 
     return ( lr11xx_status_t ) lr11xx_hal_write( context, cbuffer, LR11XX_RADIO_SET_PKT_TYPE_CMD_LENGTH, 0, 0 );
 }
@@ -676,10 +683,10 @@ lr11xx_status_t lr11xx_radio_set_pa_cfg( const void* context, const lr11xx_radio
     const uint8_t cbuffer[LR11XX_RADIO_SET_PA_CFG_CMD_LENGTH] = {
         ( uint8_t ) ( LR11XX_RADIO_SET_PA_CFG_OC >> 8 ),
         ( uint8_t ) ( LR11XX_RADIO_SET_PA_CFG_OC >> 0 ),
-        ( uint8_t ) pa_cfg->pa_sel,
-        ( uint8_t ) pa_cfg->pa_reg_supply,
-        pa_cfg->pa_duty_cycle,
-        pa_cfg->pa_hp_sel,
+        0, // ( uint8_t ) pa_cfg->pa_sel,
+        0, // ( uint8_t ) pa_cfg->pa_reg_supply,
+        4, // pa_cfg->pa_duty_cycle,
+        0, // pa_cfg->pa_hp_sel,
     };
 
     return ( lr11xx_status_t ) lr11xx_hal_write( context, cbuffer, LR11XX_RADIO_SET_PA_CFG_CMD_LENGTH, 0, 0 );

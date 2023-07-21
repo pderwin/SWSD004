@@ -71,8 +71,6 @@ extern "C" {
  * @param [in] miso SPI MISO pin name to be used
  * @param [in] sclk SPI SCLK pin name to be used
  */
-void hal_spi_init( const uint32_t id, const hal_gpio_pin_names_t mosi, const hal_gpio_pin_names_t miso,
-                   const hal_gpio_pin_names_t sclk );
 
 /*!
  *  Deinitialize the MCU SPI peripheral

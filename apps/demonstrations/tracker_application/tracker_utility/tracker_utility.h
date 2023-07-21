@@ -45,7 +45,7 @@ extern "C" {
 #include "smtc_hal.h"
 #include "smtc_modem_api.h"
 #include "lr11xx_system_types.h"
-#include "lorawan_key_config.h"
+// #include "lorawan_key_config.h"
 #include "wifi_middleware.h"
 #include "gnss_middleware.h"
 

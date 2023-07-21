@@ -42,6 +42,7 @@ extern "C" {
  * -----------------------------------------------------------------------------
  * --- DEPENDENCIES ------------------------------------------------------------
  */
+#include <zephyr/kernel.h>
 #include <stdint.h>   // C99 types
 #include <stdbool.h>  // bool type
 
@@ -77,7 +78,7 @@ extern "C" {
 
 #if ( HAL_DBG_TRACE ) && !defined (PERF_TEST_ENABLED)
 
-    #define HAL_DBG_TRACE_PRINTF( ... )  hal_mcu_trace_print (  __VA_ARGS__ )
+    #define HAL_DBG_TRACE_PRINTF( ... )  printk (  __VA_ARGS__ )
 
     #define HAL_DBG_TRACE_MSG( msg )                                           \
     do                                                                         \
@@ -133,7 +134,7 @@ extern "C" {
     #define HAL_DBG_TRACE_ARRAY( msg, array, len )                             \
     do                                                                         \
     {                                                                          \
-        HAL_DBG_TRACE_PRINTF("%s - (%lu bytes):\n", msg, ( uint32_t )len );    \
+        HAL_DBG_TRACE_PRINTF("%s - (%u bytes):\n", msg, ( uint32_t )len );    \
         for( uint32_t i = 0; i < ( uint32_t )len; i++ )                        \
         {                                                                      \
             if( ( ( i % 16 ) == 0 ) && ( i > 0 ) )                             \

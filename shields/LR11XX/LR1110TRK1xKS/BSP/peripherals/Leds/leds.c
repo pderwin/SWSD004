@@ -39,7 +39,7 @@
 
 #include "smtc_hal.h"
 #include "leds.h"
-#include "stm32wbxx_hal.h"
+// #include "stm32wbxx_hal.h"
 
 /*
  * -----------------------------------------------------------------------------
@@ -73,19 +73,22 @@
 
 void leds_init( void )
 {
-    hal_gpio_init_out( SMTC_LED_TX, 1 );
-    hal_gpio_init_out( SMTC_LED_RX, 1 );
+//    hal_gpio_init_out( SMTC_LED_TX, 1 );
+//    hal_gpio_init_out( SMTC_LED_RX, 1 );
 }
 
 void leds_deinit( void )
 {
-    hal_gpio_deinit( SMTC_LED_TX );
-    hal_gpio_deinit( SMTC_LED_RX );
+//    hal_gpio_deinit( SMTC_LED_TX );
+//    hal_gpio_deinit( SMTC_LED_RX );
 }
 
 void leds_on( uint8_t leds )
 {
-    if( leds & LED_TX_MASK )
+       printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+
+#if 0
+   if( leds & LED_TX_MASK )
     {
         /* LED1 */
         hal_gpio_set_value( SMTC_LED_TX, HAL_GPIO_RESET );
@@ -95,10 +98,13 @@ void leds_on( uint8_t leds )
         /* LED2 */
         hal_gpio_set_value( SMTC_LED_RX, HAL_GPIO_RESET );
     }
+#endif
 }
 
 void leds_off( uint8_t leds )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     if( leds & LED_TX_MASK )
     {
         /* LED1 */
@@ -109,10 +115,13 @@ void leds_off( uint8_t leds )
         /* LED2 */
         hal_gpio_set_value( SMTC_LED_RX, HAL_GPIO_SET );
     }
+#endif
 }
 
 void leds_toggle( uint8_t leds )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     if( leds & LED_TX_MASK )
     {
         /* LED1 */
@@ -123,10 +132,13 @@ void leds_toggle( uint8_t leds )
         /* LED2 */
         hal_gpio_toggle( SMTC_LED_RX );
     }
+#endif
 }
 
 uint32_t leds_get_state( uint8_t leds )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     uint32_t leds_state = 0;
 
     if( leds & LED_TX_MASK )
@@ -141,10 +153,14 @@ uint32_t leds_get_state( uint8_t leds )
     }
 
     return leds_state;
+#endif
+    return 0;
 }
 
 void leds_blink( uint8_t leds, uint32_t delay, uint8_t nb_blink, bool reset_leds )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+#if 0
     uint8_t i = 0;
 
     if( reset_leds == true )
@@ -160,6 +176,7 @@ void leds_blink( uint8_t leds, uint32_t delay, uint8_t nb_blink, bool reset_leds
         leds_off( leds );
         hal_mcu_delay_ms( delay / 2 );
     }
+#endif
 }
 
 /*
