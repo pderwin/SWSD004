@@ -172,9 +172,10 @@ uint8_t hal_flash_erase_page( uint32_t addr, uint8_t nb_page )
     return status;
 }
 
-uint32_t hal_flash_write_buffer( uint32_t addr, const uint8_t* buffer, uint32_t size )
+smtc_hal_status_t hal_flash_write_buffer( uint32_t addr, const uint8_t* buffer, uint32_t size )
 {
-    uint32_t real_size = 0;
+   smtc_hal_status_t rc = 0;
+//    uint32_t real_size = 0;
 //       printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 #if PHIL
     uint8_t  status      = SUCCESS;
@@ -246,9 +247,11 @@ uint32_t hal_flash_write_buffer( uint32_t addr, const uint8_t* buffer, uint32_t 
     /* Lock the Flash to disable the flash control register access (recommended
     to protect the FLASH memory against possible unwanted operation) *********/
     HAL_FLASH_Lock( );
-#endif
 
     return real_size;
+#endif
+
+    return rc;
 }
 
 void hal_flash_read_buffer( uint32_t addr, uint8_t* buffer, uint32_t size )

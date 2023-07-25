@@ -462,7 +462,7 @@ clock_sync_ret_t clock_sync_request( clock_sync_ctx_t* ctx )
     clock_sync_ret_t ret         = CLOCK_SYNC_ERR;
     status_lorawan_t send_status = ERRORLORAWAN;
 
-    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+    printk("CSRQ\n");
 
     TRACE(TAG_CLOCK_SYNC);
 
@@ -505,7 +505,10 @@ clock_sync_ret_t clock_sync_request( clock_sync_ctx_t* ctx )
             tx_buff_offset++;
         }
         // use target send time with both local compensation and previous alcsync compensation to create payload
-        printk("CRT_PYL\n");
+        {
+           static uint32_t payload_count = 0;
+           printk("CRT_PYL %d a: %d\n", payload_count++, app_time_ans_required);
+        }
 
         alc_sync_create_uplink_payload( ctx->alc_ctx,
                                         target_send_time + smtc_modem_hal_get_time_compensation_in_s( ) +
