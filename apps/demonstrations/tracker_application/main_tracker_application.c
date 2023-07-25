@@ -583,7 +583,6 @@ static void tracker_app_modem_configure_lorawan_params( void )
     HAL_DBG_TRACE_INFO( "LoRaWAN parameters:\n" );
 
     rc = smtc_modem_get_chip_eui( stack_id, tracker_ctx.chip_eui );
-        printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 
     if( rc == SMTC_MODEM_RC_OK )
     {
@@ -593,7 +592,6 @@ static void tracker_app_modem_configure_lorawan_params( void )
     {
         HAL_DBG_TRACE_ERROR( "smtc_modem_get_chip_eui failed (%d)\n", rc );
     }
-    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 
     rc = smtc_modem_set_deveui( stack_id, tracker_ctx.dev_eui );
     if( rc == SMTC_MODEM_RC_OK )
@@ -604,7 +602,6 @@ static void tracker_app_modem_configure_lorawan_params( void )
     {
         HAL_DBG_TRACE_ERROR( "smtc_modem_get_deveui failed (%d)\n", rc );
     }
-    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 
     rc = smtc_modem_set_joineui( stack_id, tracker_ctx.join_eui );
     if( rc == SMTC_MODEM_RC_OK )
@@ -615,7 +612,6 @@ static void tracker_app_modem_configure_lorawan_params( void )
     {
         HAL_DBG_TRACE_ERROR( "smtc_modem_get_joineui failed (%d)\n", rc );
     }
-    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 
     /* The Derive keys is done thought the smtc_modem_get_pin command */
     rc = smtc_modem_get_pin( stack_id, tracker_ctx.lorawan_pin );
@@ -627,9 +623,6 @@ static void tracker_app_modem_configure_lorawan_params( void )
     {
         HAL_DBG_TRACE_ERROR( "smtc_modem_get_pin failed (%d)\n", rc );
     }
-    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
-
-    printk("%s %d ZZZZZZZZZZZZZZZZZZ use_semtech: %d (from %p) \n", __func__, __LINE__,tracker_ctx.use_semtech_join_server,  __builtin_return_address(0) );
 
     if (tracker_ctx.use_semtech_join_server) {
        printk("%s %d ERROR: should not use semtech server.  Forcing off (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
@@ -638,7 +631,6 @@ static void tracker_app_modem_configure_lorawan_params( void )
 
        if( tracker_ctx.use_semtech_join_server == false )
     {
-    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
         rc = smtc_modem_set_nwkkey( stack_id, tracker_ctx.app_key );
         if( rc == SMTC_MODEM_RC_OK )
         {
@@ -654,19 +646,13 @@ static void tracker_app_modem_configure_lorawan_params( void )
 
         HAL_DBG_TRACE_MSG( "AppKey : Use Semtech Join Server\n" );
     }
-    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 
     ASSERT_SMTC_MODEM_RC( smtc_modem_set_class( stack_id, LORAWAN_CLASS ) );
-    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
     modem_class_to_string( LORAWAN_CLASS );
 
-    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
-
     ASSERT_SMTC_MODEM_RC( smtc_modem_set_region( stack_id, tracker_ctx.lorawan_region ) );
-    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
     modem_region_to_string( tracker_ctx.lorawan_region );
 
-    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
     /* Configure modem DM status for regular almanac status update */
     smtc_modem_dm_info_interval_format_t format   = SMTC_MODEM_DM_INFO_INTERVAL_IN_DAY;
     uint8_t                              interval = 1;
@@ -684,7 +670,7 @@ the LBM will report SMTC_MODEM_RC_NO_TIME on smtc_modem_get_time() call. */
     ASSERT_SMTC_MODEM_RC( smtc_modem_time_set_sync_interval_s( APP_ALC_TIMING_INTERVAL ) );     /* keep call order */
     ASSERT_SMTC_MODEM_RC( smtc_modem_time_set_sync_invalid_delay_s( APP_ALC_TIMING_INVALID ) ); /* keep call order */
     /* Start the service */
-    ASSERT_SMTC_MODEM_RC( smtc_modem_time_start_sync_service( stack_id, SMTC_MODEM_TIME_ALC_SYNC ) );
+//    ASSERT_SMTC_MODEM_RC( smtc_modem_time_start_sync_service( stack_id, SMTC_MODEM_TIME_ALC_SYNC ) );
 }
 
 /*
@@ -1083,21 +1069,8 @@ static void on_modem_reset( uint16_t reset_count )
             smtc_board_leds_blink( smtc_board_get_led_all_mask( ), 500, 5 );
         }
 
-    printk("%s %d airplane_mode: %d \n", __func__, __LINE__, tracker_ctx.airplane_mode );
-
         if( tracker_ctx.airplane_mode == false )
         {
-    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
-
-
-
-
-
-
-
-
-
-
             /* Start the Join process */
             ASSERT_SMTC_MODEM_RC( smtc_modem_join_network( stack_id ) );
 
@@ -1123,6 +1096,22 @@ static void on_modem_reset( uint16_t reset_count )
 static void on_modem_network_joined( void )
 {
     mw_version_t mw_version;
+    smtc_modem_return_code_t
+       rc;
+
+    /*
+     * Request a time sync every 30 seconds.
+     */
+    smtc_modem_time_set_sync_interval_s(15);
+
+    /*
+     * Start a clock sync service
+     */
+    rc = smtc_modem_time_start_sync_service(stack_id, SMTC_MODEM_TIME_ALC_SYNC);
+
+    if (rc != SMTC_MODEM_RC_OK) {
+       printk("%s: Error while attempting to start clock services.  rc: %d  (from %p) \n", __func__, rc, __builtin_return_address(0) );
+    }
 
     /* Stop network research notification */
     smtc_board_stop_periodic_led_pulse( );
@@ -1190,6 +1179,12 @@ static void on_modem_down_data( int8_t rssi, int8_t snr, smtc_modem_event_downda
 
 static void on_modem_clk_synch( smtc_modem_event_time_status_t time_status )
 {
+    printk("%s %d KKKKKKKKKKKKKKKKKK (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+
+
+
+
+
     /* Set the ADR according to the region */
     tracker_app_set_adr( );
 
@@ -1217,6 +1212,8 @@ static void on_modem_almanac_update( smtc_modem_event_almanac_update_status_t st
 
 static void on_middleware_gnss_event( uint8_t pending_events )
 {
+    printk("%s %d GGGGGGGGGGGGGGGGG (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+
     /* Parse events */
     if( gnss_mw_has_event( pending_events, GNSS_MW_EVENT_SCAN_DONE ) )
     {

@@ -415,6 +415,8 @@ mw_return_code_t gnss_mw_scan_start( gnss_mw_mode_t mode, uint32_t start_delay )
     smtc_modem_return_code_t modem_rc;
     bool                     scan_group_err;
 
+    printk("%s %d GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG m: %x d: %d (from %p) \n", __func__, __LINE__, mode, start_delay, __builtin_return_address(0) );
+
     if( modem_radio_ctx == NULL )
     {
         MW_DBG_TRACE_ERROR( "GNSS middleware not ready, cannot start scan\n" );

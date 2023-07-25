@@ -36,7 +36,7 @@
  * -----------------------------------------------------------------------------
  * --- DEPENDENCIES ------------------------------------------------------------
  */
-#include <zephyr/kernel.h>
+
 #include <string.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -712,8 +712,6 @@ ral_status_t ral_lr11xx_set_rf_freq( const void* context, const uint32_t freq_in
 {
     ral_status_t                          status = RAL_STATUS_ERROR;
     lr11xx_radio_rssi_calibration_table_t rssi_calibration_table;
-
-    printk("%s %d f: %d (from %p) \n", __func__, __LINE__, freq_in_hz, __builtin_return_address(0) );
 
     status = ( ral_status_t ) lr11xx_radio_set_rf_freq( context, freq_in_hz );
     if( status != RAL_STATUS_OK )

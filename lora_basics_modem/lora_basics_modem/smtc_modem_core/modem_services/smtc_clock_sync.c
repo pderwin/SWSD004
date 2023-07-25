@@ -36,6 +36,7 @@
  * -----------------------------------------------------------------------------
  * --- DEPENDENCIES ------------------------------------------------------------
  */
+#include <zephyr/drivers/trace.h>
 #include <stdint.h>   // C99 types
 #include <stdbool.h>  // bool type
 #include <string.h>
@@ -461,6 +462,10 @@ clock_sync_ret_t clock_sync_request( clock_sync_ctx_t* ctx )
     clock_sync_ret_t ret         = CLOCK_SYNC_ERR;
     status_lorawan_t send_status = ERRORLORAWAN;
 
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+
+    TRACE(TAG_CLOCK_SYNC);
+
     if( ctx->sync_service_type == CLOCK_SYNC_MAC )
     {
         send_status = lorawan_api_send_stack_cid_req( DEVICE_TIME_REQ );
@@ -472,25 +477,36 @@ clock_sync_ret_t clock_sync_request( clock_sync_ctx_t* ctx )
         uint8_t tx_buffer_length_out = 0;
 
         // The randomness value is used because the frame must be sent at time
+        uint32_t now = smtc_modem_hal_get_time_in_s();
+
         uint32_t target_send_time = smtc_modem_hal_get_time_in_s( ) + smtc_modem_hal_get_random_nb_in_range( 1, 3 );
         uint8_t  app_time_ans_required = false;
         uint8_t  tx_buff_offset        = 0;
         // AnsRequired bit set to one in both cases: synchronisation lost or the last 30 days
         // synchronisation lost
+
+        HERE();
+
         if( ( !clock_sync_is_done( ctx ) ) ||
             ( clock_sync_is_done( ctx ) &&
               ( ( smtc_modem_hal_get_time_in_s( ) - alc_sync_get_timestamp_last_correction_s( ctx->alc_ctx ) ) >
                 ( ALC_SYNC_DEFAULT_S_SINCE_LAST_CORRECTION >> 1 ) ) ) )
         {
+        HERE();
             app_time_ans_required = true;
         }
+
+        HERE();
         // check first if alc_sync runs on dm port and if yes add dm code
         if( get_modem_dm_port( ) == clock_sync_get_alcsync_port( ctx ) )
         {
+        HERE();
             tx_buffer_out[tx_buff_offset] = DM_INFO_ALCSYNC;
             tx_buff_offset++;
         }
         // use target send time with both local compensation and previous alcsync compensation to create payload
+        printk("CRT_PYL\n");
+
         alc_sync_create_uplink_payload( ctx->alc_ctx,
                                         target_send_time + smtc_modem_hal_get_time_compensation_in_s( ) +
                                             alc_sync_get_time_correction_second( ctx->alc_ctx ),
@@ -500,6 +516,9 @@ clock_sync_ret_t clock_sync_request( clock_sync_ctx_t* ctx )
         tx_buffer_length_out += tx_buff_offset;
         if( tx_buffer_length_out > 0 )
         {
+           TRACE3(TAG_CLOCK_SYNC_SEND, tx_buffer_length_out, now, target_send_time * 1000);
+           TRACE_BLOCK(TAG_CLOCK_SYNC_BLOCK, tx_buffer_out, tx_buffer_length_out);
+
             send_status =
                 lorawan_api_payload_send_at_time( clock_sync_get_alcsync_port( ctx ), true, tx_buffer_out,
                                                   tx_buffer_length_out, UNCONF_DATA_UP, target_send_time * 1000 );

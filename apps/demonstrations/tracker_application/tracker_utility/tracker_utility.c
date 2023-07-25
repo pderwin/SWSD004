@@ -619,8 +619,13 @@ void tracker_init_app_ctx( const uint8_t* dev_eui, const uint8_t* join_eui, cons
     /* GNSS Parameters */
     tracker_ctx.gnss_antenna_sel = GNSS_PCB_ANTENNA;
     /* Set default position to Semtech France */
-    tracker_ctx.gnss_assistance_position_latitude  = 45.208;
-    tracker_ctx.gnss_assistance_position_longitude = 5.781;
+
+//    tracker_ctx.gnss_assistance_position_latitude  = 45.208;
+//    tracker_ctx.gnss_assistance_position_longitude = 5.781;
+
+    tracker_ctx.gnss_assistance_position_latitude  = 38.072;
+    tracker_ctx.gnss_assistance_position_longitude = -84.49;
+
     tracker_ctx.gnss_last_almanac_update           = 0;
     tracker_ctx.scan_priority                      = TRACKER_GNSS_PRIORITY;
 

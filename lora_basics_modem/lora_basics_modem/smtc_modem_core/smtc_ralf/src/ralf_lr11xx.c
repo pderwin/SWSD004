@@ -35,7 +35,7 @@
  * -----------------------------------------------------------------------------
  * --- DEPENDENCIES ------------------------------------------------------------
  */
-#include <zephyr/kernel.h>
+
 #include "ralf_lr11xx.h"
 #include "ral.h"
 
@@ -145,8 +145,6 @@ ral_status_t ralf_lr11xx_setup_lora( const ralf_t* radio, const ralf_params_lora
     {
         return status;
     }
-
-    printk("%s %d params: %p freq: %d (from %p) \n", __func__, __LINE__, params, params->rf_freq_in_hz, __builtin_return_address(0) );
 
     status = ral_set_rf_freq( &radio->ral, params->rf_freq_in_hz );
     if( status != RAL_STATUS_OK )

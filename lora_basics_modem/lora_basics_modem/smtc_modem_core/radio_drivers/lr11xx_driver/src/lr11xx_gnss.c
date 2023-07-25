@@ -36,7 +36,7 @@
  * -----------------------------------------------------------------------------
  * --- DEPENDENCIES ------------------------------------------------------------
  */
-
+#include <zephyr/kernel.h>
 #include "lr11xx_gnss.h"
 #include "lr11xx_regmem.h"
 #include "lr11xx_system_types.h"
@@ -370,6 +370,8 @@ lr11xx_status_t lr11xx_gnss_set_constellations_to_use( const void*              
         ( uint8_t ) ( LR11XX_GNSS_SET_CONSTELLATION_OC >> 0 ),
         constellation_to_use,
     };
+
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 
     return ( lr11xx_status_t ) lr11xx_hal_write( context, cbuffer, LR11XX_GNSS_SET_CONSTELLATION_CMD_LENGTH, 0, 0 );
 }

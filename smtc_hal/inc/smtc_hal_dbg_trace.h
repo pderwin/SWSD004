@@ -134,7 +134,7 @@ extern "C" {
     #define HAL_DBG_TRACE_ARRAY( msg, array, len )                             \
     do                                                                         \
     {                                                                          \
-        HAL_DBG_TRACE_PRINTF("%s - (%u bytes):\n", msg, ( uint32_t )len );    \
+        HAL_DBG_TRACE_PRINTF("%s - (%u bytes): ", msg, ( uint32_t )len );    \
         for( uint32_t i = 0; i < ( uint32_t )len; i++ )                        \
         {                                                                      \
             if( ( ( i % 16 ) == 0 ) && ( i > 0 ) )                             \
