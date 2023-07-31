@@ -462,10 +462,6 @@ clock_sync_ret_t clock_sync_request( clock_sync_ctx_t* ctx )
     clock_sync_ret_t ret         = CLOCK_SYNC_ERR;
     status_lorawan_t send_status = ERRORLORAWAN;
 
-    printk("CSRQ\n");
-
-    TRACE(TAG_CLOCK_SYNC);
-
     if( ctx->sync_service_type == CLOCK_SYNC_MAC )
     {
         send_status = lorawan_api_send_stack_cid_req( DEVICE_TIME_REQ );
@@ -485,29 +481,26 @@ clock_sync_ret_t clock_sync_request( clock_sync_ctx_t* ctx )
         // AnsRequired bit set to one in both cases: synchronisation lost or the last 30 days
         // synchronisation lost
 
-        HERE();
-
         if( ( !clock_sync_is_done( ctx ) ) ||
             ( clock_sync_is_done( ctx ) &&
               ( ( smtc_modem_hal_get_time_in_s( ) - alc_sync_get_timestamp_last_correction_s( ctx->alc_ctx ) ) >
                 ( ALC_SYNC_DEFAULT_S_SINCE_LAST_CORRECTION >> 1 ) ) ) )
         {
-        HERE();
             app_time_ans_required = true;
         }
 
-        HERE();
         // check first if alc_sync runs on dm port and if yes add dm code
         if( get_modem_dm_port( ) == clock_sync_get_alcsync_port( ctx ) )
         {
-        HERE();
             tx_buffer_out[tx_buff_offset] = DM_INFO_ALCSYNC;
             tx_buff_offset++;
         }
         // use target send time with both local compensation and previous alcsync compensation to create payload
         {
            static uint32_t payload_count = 0;
-           printk("CRT_PYL %d a: %d\n", payload_count++, app_time_ans_required);
+
+           TRACE2(TAG_CLOCK_SYNC, now, payload_count);
+           payload_count++;
         }
 
         alc_sync_create_uplink_payload( ctx->alc_ctx,
@@ -519,9 +512,6 @@ clock_sync_ret_t clock_sync_request( clock_sync_ctx_t* ctx )
         tx_buffer_length_out += tx_buff_offset;
         if( tx_buffer_length_out > 0 )
         {
-           TRACE3(TAG_CLOCK_SYNC_SEND, tx_buffer_length_out, now, target_send_time * 1000);
-           TRACE_BLOCK(TAG_CLOCK_SYNC_BLOCK, tx_buffer_out, tx_buffer_length_out);
-
             send_status =
                 lorawan_api_payload_send_at_time( clock_sync_get_alcsync_port( ctx ), true, tx_buffer_out,
                                                   tx_buffer_length_out, UNCONF_DATA_UP, target_send_time * 1000 );
