@@ -328,42 +328,50 @@ static uint32_t rtc_ms_2_wakeup_timer_tick( const uint32_t milliseconds )
 }
 #endif
 
-extern uint32_t rtc_uptime_msecs (uint32_t *msecs);
-
-static uint32_t rtc_get_calendar_time( uint16_t* milliseconds_div_10 )
+/*-------------------------------------------------------------------------
+ *
+ * name:        get uptime with resolution to 100 uSecs
+ *
+ * description:
+ *
+ * input:
+ *
+ * output:      seconds:            full seconds
+ *              milliseconds_di_10: number of 100 uSec ticks within the second
+ *
+ *-------------------------------------------------------------------------*/
+static uint32_t rtc_get_calendar_time( uint16_t* msec_div_10_p )
 {
-   uint32_t
-      msecs;
-
-//    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
-#if PHIL
-   RTC_TimeTypeDef time;
-    RTC_DateTypeDef date;
-    uint32_t        ticks;
-
-    uint64_t timestamp_in_ticks = rtc_get_timestamp_in_ticks( &date, &time );
-
-    uint32_t seconds = ( uint32_t )( timestamp_in_ticks >> N_PREDIV_S );
-
-    ticks = ( uint32_t ) timestamp_in_ticks & PREDIV_S;
-
-    *milliseconds_div_10 = rtc_tick_2_100us( ticks );
-
-    return seconds;
-#endif
+    uint64_t
+       msec_div_10,
+       seconds,
+       uptime_ticks,
+       uptime_100_usecs;
 
     /*
-     * Get number of seconds of uptime.
+     * Get number of seconds of uptime, as well as msecs
      */
-    uint32_t uptime = rtc_uptime_msecs(&msecs);
+    uint64_t uptime_ticks = k_uptime_ticks();
+
+    /*
+     * The counter always runs with an input clock of 32768 Hz.  Convert
+     * the tick value to time in terms of 100 uSecs by multiplying by
+     * 10000, and the divide by 32768.
+     */
+    uptime_100_usecs = (uptime_ticks * 10000) / 32768;
+
+    seconds     = uptime_100_usecs / 10000;
+    msec_div_10 = uptime_100_usecs % 10000;
 
     /*
      * This return value seems to be the current partial
      * second in terms of 100 uSec units.
      */
-    *milliseconds_div_10 = (msecs * 10);
+    *msec_div_10_p = msec_div_10;
 
-    return uptime;
+//    TRACE4(TAG_RTC_GET_CALENDAR_TIME, uptime_ticks,  seconds, msec_div_10 ,  __builtin_return_address(0));
+
+    return seconds;
 }
 
 #if PHIL
