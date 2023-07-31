@@ -467,8 +467,6 @@ void smtc_board_measure_battery_drop( uint8_t stack_id, smtc_modem_region_t regi
 //    smtc_modem_return_code_t modem_return_code = SMTC_MODEM_RC_OK;
 //    uint32_t                 relaxed_voltage = 0;
 //    uint32_t                 tick_vdrop      = 0;
-
-    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 #if 0
     relaxed_voltage = smtc_modem_hal_get_voltage( ) * 20;
     printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
@@ -610,7 +608,6 @@ void smtc_board_led_pulse( uint32_t led_mask, bool turn_on, uint32_t duration_ms
 
 void smtc_board_start_periodic_led_pulse( uint32_t led_mask, uint32_t pulse_duration_ms, uint32_t period_ms )
 {
-   printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 #if 0
 
     if( period_ms > pulse_duration_ms )
@@ -641,8 +638,6 @@ void smtc_board_start_periodic_led_pulse( uint32_t led_mask, uint32_t pulse_dura
 }
 
 void smtc_board_stop_periodic_led_pulse( void ) {
-       printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
-
        // timer_stop( &smtc_board_periodic_led_pulse.periodic_timer );
 }
 
@@ -680,7 +675,6 @@ void smtc_board_reset_radio( const void* context ) { lr11xx_hal_reset( context )
 
 void smtc_board_set_radio_in_dfu( const void* context )
 {
-   printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 #if 0
     const lr11xx_hal_context_t* lr11xx_context = ( const lr11xx_hal_context_t* ) context;
 
@@ -702,7 +696,6 @@ void smtc_board_set_radio_in_dfu( const void* context )
 
 uint8_t smtc_board_read_busy_pin( const void* context )
 {
-   printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 #if 0
     const lr11xx_hal_context_t* lr11xx_context = ( const lr11xx_hal_context_t* ) context;
 
@@ -734,7 +727,6 @@ void on_periodic_timer_event( void* context )
 
 static void on_effect_hall_timer_event( void* context )
 {
-    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 #if 0
     HAL_DBG_TRACE_PRINTF( "Stop hall effect sensor\n" );
     smtc_board_hall_effect_enable( false );
