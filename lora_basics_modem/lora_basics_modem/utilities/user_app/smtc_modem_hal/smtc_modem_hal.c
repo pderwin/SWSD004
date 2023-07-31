@@ -379,7 +379,7 @@ uint8_t smtc_modem_hal_get_voltage( void )
 
 int8_t smtc_modem_hal_get_board_delay_ms( void )
 {
-    return 1;
+    return 30;
 }
 
 /* ------------ Trace management ------------*/
