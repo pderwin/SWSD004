@@ -243,7 +243,7 @@ void lr1_stack_mac_tx_lora_launch_callback_for_rp( void* rp_void )
     // Wait the exact expected time (ie target - tcxo startup delay)
     while( ( int32_t )( rp->tasks[id].start_time_ms - smtc_modem_hal_get_time_in_ms( ) ) > 0 )
     {
-        // Do nothing
+       k_busy_wait(250);
     }
     // At this time only tcxo startup delay is remaining
     smtc_modem_hal_start_radio_tcxo( );
@@ -311,6 +311,7 @@ void lr1_stack_mac_rx_lora_launch_callback_for_rp( void* rp_void )
     // Wait the exact expected time (ie target - tcxo startup delay)
     while( ( int32_t )( rp->tasks[id].start_time_ms - smtc_modem_hal_get_time_in_ms( ) ) > 0 )
     {
+       k_busy_wait(250);
     }
     // At this time only tcxo startup delay is remaining
     smtc_modem_hal_start_radio_tcxo( );
@@ -725,6 +726,8 @@ void lr1_stack_mac_rp_callback( lr1_stack_mac_t* lr1_mac )
     }
 }
 
+void debug_gpio_error (void);
+
 void lr1_stack_mac_rx_timer_configure( lr1_stack_mac_t* lr1_mac, const rx_win_type_t type )
 {
     const uint32_t tcurrent_ms = smtc_modem_hal_get_time_in_ms( );
@@ -750,22 +753,6 @@ void lr1_stack_mac_rx_timer_configure( lr1_stack_mac_t* lr1_mac, const rx_win_ty
     }
 
     delay_ms *= 1000;
-
-    {
-       uint32_t
-          new_delay_ms;
-
-       if (delay_ms == 5000) {
-          new_delay_ms = delay_ms - 100;
-       }
-       else {
-          new_delay_ms = delay_ms - 70;
-    }
-
-    TRACE2(TAG_DELAY_MS, new_delay_ms, delay_ms);
-
-    delay_ms = new_delay_ms;
-    }
 
     if( is_type_ok == true )
     {
@@ -793,10 +780,32 @@ void lr1_stack_mac_rx_timer_configure( lr1_stack_mac_t* lr1_mac, const rx_win_ty
                                   +smtc_modem_hal_get_board_delay_ms( ) +
                                   lr1_mac->fine_tune_board_setting_delay_ms[lr1_mac->rx_data_rate];
 
+
+        TRACE4(TAG_BOARD_DELAY,
+              board_delay_ms,
+              smtc_modem_hal_get_radio_tcxo_startup_delay_ms( ),
+              smtc_modem_hal_get_board_delay_ms( ),
+              lr1_mac->fine_tune_board_setting_delay_ms[lr1_mac->rx_data_rate]);
+
         smtc_real_get_rx_window_parameters( lr1_mac, lr1_mac->rx_data_rate, delay_ms, &lr1_mac->rx_window_symb,
                                             &lr1_mac->rx_timeout_symb_in_ms, &lr1_mac->rx_timeout_ms, 0 );
+
+        TRACE5(TAG_RX_WINDOW_PARAMETERS,
+              lr1_mac->rx_data_rate,
+              delay_ms,
+              lr1_mac->rx_window_symb,
+              lr1_mac->rx_timeout_symb_in_ms,
+              lr1_mac->rx_timeout_ms);
+
         smtc_real_get_rx_start_time_offset_ms( lr1_mac, lr1_mac->rx_data_rate, board_delay_ms, lr1_mac->rx_window_symb,
                                                &lr1_mac->rx_offset_ms );
+
+
+        TRACE4(TAG_RX_START_TIME_OFFSET,
+               lr1_mac->rx_data_rate,
+               board_delay_ms,
+               lr1_mac->rx_window_symb,
+               lr1_mac->rx_offset_ms );
 
         SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG(
             "rx_offset_ms:%d, rx_timeout_symb_in_ms:%d, rx_window_symb: %d, board_delay_ms:%d\n", lr1_mac->rx_offset_ms,
@@ -804,12 +813,24 @@ void lr1_stack_mac_rx_timer_configure( lr1_stack_mac_t* lr1_mac, const rx_win_ty
 
         // Do not factorize the talarm_ms, the if does not check the same value
         uint32_t talarm_ms = delay_ms + lr1_mac->isr_tx_done_radio_timestamp - tcurrent_ms;
+
+        /*
+         * If talarm is negative, then we have already missed the target window for the data reception.
+         */
         if( ( int32_t )( talarm_ms - lr1_mac->rx_offset_ms ) < 0 )
         {
+           TRACE2(TAG_MISSED_RX_WINDOW, talarm_ms, lr1_mac->rx_offset_ms);
+           debug_gpio_error();
+
+           printk("ERROR: Missed RX window: talarm_ms: %d rx_offset: %d  (%d)\n", talarm_ms, lr1_mac->rx_offset_ms,  __LINE__ );
+           printk("       delay_ms: %d tx_done_timestamp: %d tcurrent_ms: %d \n\n", delay_ms, lr1_mac->isr_tx_done_radio_timestamp, tcurrent_ms );
+
             lr1_mac->radio_process_state = RADIOSTATE_RX_FINISHED;
         }
         else
         {
+            TRACE5(TAG_CONFIGURE_RX_WINDOW, tcurrent_ms, talarm_ms, lr1_mac->rx_offset_ms, delay_ms, lr1_mac->isr_tx_done_radio_timestamp);
+
             lr1_stack_mac_rx_radio_start( lr1_mac, type, tcurrent_ms + talarm_ms + lr1_mac->rx_offset_ms );
             SMTC_MODEM_HAL_TRACE_PRINTF( "  Timer will expire in %d ms\n", ( talarm_ms + lr1_mac->rx_offset_ms ) );
         }
