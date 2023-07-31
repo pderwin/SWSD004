@@ -56,6 +56,8 @@
 #include "lorawan_key_config.h"
 #include "smtc_board.h"
 
+#define SEMTRACKER_PRIORITY  (4)
+#define SEMTRACKER_STACKSIZE (2048)
 
 #ifdef PHIL
 
@@ -288,17 +290,14 @@ static void on_middleware_wifi_event( uint8_t pending_events );
  */
 const void *lr11xx_hal_get_radio_context( void );
 
-extern void debug_gpio_init (void);
-extern uint32_t dump_set_tx;
+extern void     debug_gpio_init      (void);
 
 /**
  * @brief Main application entry point.
  */
-int main_tracker_application( void )
+void semtracker_application( void *p1, void *p2, void *p3)
 {
     uint32_t sleep_time_ms                   = 0;
-
-    dump_set_tx = 1;
 
     static uint8_t join_eui[8] = { 0x70, 0xB3, 0xD5, 0x7E, 0xD0, 0x03, 0x31, 0xC9 };
     static uint8_t dev_eui[8]  = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x03 };
@@ -477,11 +476,7 @@ int main_tracker_application( void )
             }
 #endif
         } // else
-        k_sleep(K_MSEC(1000));
-
     } // while(1)
-
-    return 0;
 }
 
 /*
@@ -1125,8 +1120,11 @@ static void on_modem_network_joined( void )
                         mw_version.patch );
     gnss_mw_init( tracker_modem_radio, stack_id );
     gnss_mw_set_constellations( GNSS_MW_CONSTELLATION_GPS_BEIDOU );
+/* PHIL don't set aiding position yet.  Causes ASSISTED scans. */
+#if 0
     gnss_mw_set_user_aiding_position( tracker_ctx.gnss_assistance_position_latitude,
                                       tracker_ctx.gnss_assistance_position_longitude );
+#endif
 
     /* Initialize Wi-Fi middleware */
     wifi_mw_get_version( &mw_version );
@@ -1468,3 +1466,21 @@ static void on_middleware_wifi_event( uint8_t pending_events )
  */
 
 /* --- EOF ------------------------------------------------------------------ */
+
+K_THREAD_STACK_DEFINE(semtracker_stack_area, SEMTRACKER_STACKSIZE);
+struct k_thread	semtracker_thread_data;
+
+///	Start LoRa thread.
+void semtracker_thread_start(void)
+{
+   k_tid_t tid;
+
+   tid = k_thread_create(&semtracker_thread_data, semtracker_stack_area,
+                         K_THREAD_STACK_SIZEOF(semtracker_stack_area),
+                         semtracker_application,
+                         NULL, NULL,	NULL,
+                         SEMTRACKER_PRIORITY, 0, K_NO_WAIT);
+
+   k_thread_name_set(tid, "semtracker");
+
+}
