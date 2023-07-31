@@ -36,6 +36,7 @@
  * -----------------------------------------------------------------------------
  * --- DEPENDENCIES ------------------------------------------------------------
  */
+#include <zephyr/kernel.h>
 #include <string.h>
 
 #include "gnss_helpers.h"
@@ -371,9 +372,16 @@ bool smtc_gnss_get_sv_info( const void* radio_context, const uint8_t sv_info_max
         return false;
     }
 
+    printk("%s %d NB DETECTED: %d \n", __func__, __LINE__, *nb_detected_sv );
+
     if( *nb_detected_sv > sv_info_max_size )
     {
         MW_DBG_TRACE_ERROR( "Cannot store info of all detected SVs (%u: max:%u)\n", nb_detected_sv, sv_info_max_size );
+        return false;
+    }
+
+    if( *nb_detected_sv == 0) {
+        MW_DBG_TRACE_ERROR( "No detected satellites\n");
         return false;
     }
 

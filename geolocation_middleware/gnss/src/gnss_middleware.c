@@ -459,6 +459,7 @@ mw_return_code_t gnss_mw_scan_start( gnss_mw_mode_t mode, uint32_t start_delay )
     /* Switch back to assisted if previous scan was for aiding position request */
     if( current_scan_type == GNSS_MW_SCAN_TYPE_ASSISTED_FOR_AIDING_POSITION )
     {
+       printk("%s %d SETSCAN TO ASSISTED (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
         current_scan_type = GNSS_MW_SCAN_TYPE_ASSISTED;
     }
 
@@ -536,6 +537,7 @@ mw_return_code_t gnss_mw_set_user_aiding_position( float latitude, float longitu
     user_aiding_position_update_received  = true;
 
     /* We can switch to assisted scan for the next scan */
+    printk("%s %d ASSISTED (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
     current_scan_type = GNSS_MW_SCAN_TYPE_ASSISTED;
 
     return MW_RC_OK;
@@ -782,8 +784,11 @@ static void gnss_mw_scan_rp_task_launch( void* context )
     uint32_t                                 fractional_seconds = 0;
     lr11xx_gnss_solver_assistance_position_t lr11xx_aiding_position;
     smtc_gnss_scan_params_t                  scan_params;
+
     gnss_mw_scan_type_t                      scan_type =
         ( ( autonomous_scan_for_indoor_check == true ) ? GNSS_MW_SCAN_TYPE_AUTONOMOUS : current_scan_type );
+
+    printk("%s %d indoor: %d cst: %d (from %p) \n", __func__, __LINE__, autonomous_scan_for_indoor_check, current_scan_type,  __builtin_return_address(0) );
 
     /* From now, the scan sequence can not be cancelled */
     task_running = true;
@@ -1035,6 +1040,7 @@ void gnss_mw_scan_rp_task_done( smtc_modem_rp_status_t* status )
                 if( ( doppler_error == true ) &&
                     ( current_scan_type != GNSS_MW_SCAN_TYPE_ASSISTED_FOR_AIDING_POSITION ) )
                 {
+                   printk("%s %d ASSISTED (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
                     current_scan_type = GNSS_MW_SCAN_TYPE_ASSISTED_FOR_AIDING_POSITION;
 
                     /* Save power consumption */
@@ -1294,6 +1300,7 @@ static void gnss_mw_set_solver_aiding_position( const uint8_t* payload, uint8_t 
     solver_aiding_position_update_received = true;
 
     /* We can switch to assisted scan for the next scan */
+    printk("%s %d ASSISTED (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
     current_scan_type = GNSS_MW_SCAN_TYPE_ASSISTED;
 }
 
