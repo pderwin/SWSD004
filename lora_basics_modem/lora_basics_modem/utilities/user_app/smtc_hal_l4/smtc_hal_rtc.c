@@ -351,7 +351,7 @@ static uint32_t rtc_get_calendar_time( uint16_t* msec_div_10_p )
     /*
      * Get number of seconds of uptime, as well as msecs
      */
-    uint64_t uptime_ticks = k_uptime_ticks();
+    uptime_ticks = k_uptime_ticks();
 
     /*
      * The counter always runs with an input clock of 32768 Hz.  Convert
