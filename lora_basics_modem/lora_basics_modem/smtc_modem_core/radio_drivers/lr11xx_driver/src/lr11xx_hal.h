@@ -148,6 +148,15 @@ lr11xx_hal_status_t lr11xx_hal_direct_read( const void* context, uint8_t* data, 
 lr11xx_hal_status_t lr11xx_hal_reset( const void* context );
 
 /*!
+ * @brief Reset the radio into its bootloader for subsequent flash programming
+ *
+ * @param [in] context Radio implementation parameters
+ *
+ * @returns Operation status
+ */
+lr11xx_hal_status_t lr11xx_hal_reset_programming_mode( const void* context );
+
+/*!
  * @brief Wake the radio up.
  *
  * @param [in] context Radio implementation parameters
