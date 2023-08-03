@@ -2803,7 +2803,6 @@ uint32_t smtc_real_get_symbol_duration_us( lr1_stack_mac_t* lr1_mac, uint8_t dat
     if( modulation_type == LORA )
     {
         uint8_t            sf;
-        uint32_t           duration;
         lr1mac_bandwidth_t bw;
         smtc_real_lora_dr_to_sf_bw( lr1_mac, datarate, &sf, &bw );
         // Use lr1mac_utilities_get_symb_time_us
@@ -2826,11 +2825,7 @@ uint32_t smtc_real_get_symbol_duration_us( lr1_stack_mac_t* lr1_mac, uint8_t dat
             break;
         }
 
-        duration = ( ( ( uint32_t )( ( 1 << sf ) * 1000 ) / bw_temp ) );
-
-        TRACE3(TAG_SYMBOL_DURATION , duration, sf, bw_temp);
-
-        return duration;
+        return ( ( ( uint32_t )( ( 1 << sf ) * 1000 ) / bw_temp ) );
     }
     else
     {
@@ -2853,8 +2848,6 @@ void smtc_real_get_rx_window_parameters( lr1_stack_mac_t* lr1_mac, uint8_t datar
         min_rx_symb_duration_ms += 2;
     }
 
-    TRACE2(TAG_RX_WINDOW_PARMS, MIN_RX_WINDOW_DURATION_MS, rx_done_incertitude );
-
     *rx_timeout_symb_in_ms = MAX(
         ( ( ( ( rx_delay_ms * 2 * lr1_mac->crystal_error ) / 1000 ) + ( MIN_RX_WINDOW_SYMB * tsymbol_us ) ) / 1000 ),
         min_rx_symb_duration_ms );
@@ -2870,12 +2863,9 @@ void smtc_real_get_rx_window_parameters( lr1_stack_mac_t* lr1_mac, uint8_t datar
 
     *rx_timeout_symb_in_ms = MAX( ( *rx_window_symb * tsymbol_us ) / 1000, MIN_RX_WINDOW_DURATION_MS );
 
-    TRACE3(TAG_RX_WINDOW_PARMS2,  *rx_timeout_symb_in_ms, *rx_window_symb, tsymbol_us );
-
     *rx_timeout_preamble_locked_in_ms = 3000;
 
 #if defined( SX128X )
-    #error
     // rx timeout is used to simuate a symb timeout in sx128x (need to open preamb + sync +header)
     *rx_timeout_preamble_locked_in_ms =
         MAX( ceilf( ( ( ( float ) *rx_window_symb + 16.25f ) * tsymbol_us ) ) / 1000, MIN_RX_WINDOW_DURATION_MS );
