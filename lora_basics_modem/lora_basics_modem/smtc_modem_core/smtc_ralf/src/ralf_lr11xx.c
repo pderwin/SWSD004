@@ -140,7 +140,7 @@ ral_status_t ralf_lr11xx_setup_lora( const ralf_t* radio, const ralf_params_lora
     {
         return status;
     }
-    status = ral_set_lora_symb_nb_timeout( &radio->ral, 0 /* params->symb_nb_timeout */ );
+    status = ral_set_lora_symb_nb_timeout( &radio->ral, params->symb_nb_timeout );
     if( status != RAL_STATUS_OK )
     {
         return status;
