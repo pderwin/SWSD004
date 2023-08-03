@@ -51,6 +51,7 @@
 #include <zephyr/drivers/gpio.h>
 #include <stdio.h>
 #include <string.h>
+#include "firmware_update.h"
 #include "main_tracker_application.h"
 #include "tracker_utility.h"
 #include "lorawan_key_config.h"
@@ -423,7 +424,6 @@ void semtracker_application( void *p1, void *p2, void *p3)
 
     HAL_DBG_TRACE_INFO( "###### ===== LoRa Basics Modem Version ==== ######\n" );
     tracker_app_display_lbm_version( );
-    printk("%s %d region: %d \n", __func__, __LINE__,  tracker_ctx.lorawan_region);
 
     /* Init Tracker context */
     tracker_app_init_context( dev_eui, join_eui, app_key );
@@ -876,6 +876,17 @@ static void tracker_app_parse_downlink_frame( uint8_t port, const uint8_t* paylo
     }
 }
 
+/*-------------------------------------------------------------------------
+ *
+ * name:         tracker_app_lr11xx_check_firmware_version
+ *
+ * description:
+ *
+ * input:
+ *
+ * output:
+ *
+ *-------------------------------------------------------------------------*/
 static bool tracker_app_lr11xx_check_firmware_version( const void* context )
 {
     lr11xx_status_t status;
@@ -902,13 +913,19 @@ static bool tracker_app_lr11xx_check_firmware_version( const void* context )
         if( ( status == LR11XX_STATUS_OK ) && ( tracker_ctx.lr11xx_fw_version.type == 0x0001 ) )
         {
             tracker_ctx.has_lr11xx_trx_firmware = true;
-
             if( tracker_ctx.lr11xx_fw_version.fw < LR11XX_FW_VERSION )
             {
+#if 1
+               /*
+                * Update the senssor firmware with code that is built into this image.
+                */
+               firmware_update(tracker_modem_radio->ral.context);
+#else
                 /* LR11XX firmware version is not the expected one, sstay in BLE and
                  * update the LR11XX firmware */
                 HAL_DBG_TRACE_ERROR( "Wrong LR11XX_FW_VERSION, current version is 0x%04X, expected is 0x%04X\n",
                                      tracker_ctx.lr11xx_fw_version.fw, LR11XX_FW_VERSION );
+#endif
             }
             else
             {
@@ -1120,11 +1137,8 @@ static void on_modem_network_joined( void )
                         mw_version.patch );
     gnss_mw_init( tracker_modem_radio, stack_id );
     gnss_mw_set_constellations( GNSS_MW_CONSTELLATION_GPS_BEIDOU );
-/* PHIL don't set aiding position yet.  Causes ASSISTED scans. */
-#if 0
     gnss_mw_set_user_aiding_position( tracker_ctx.gnss_assistance_position_latitude,
                                       tracker_ctx.gnss_assistance_position_longitude );
-#endif
 
     /* Initialize Wi-Fi middleware */
     wifi_mw_get_version( &mw_version );
@@ -1177,12 +1191,6 @@ static void on_modem_down_data( int8_t rssi, int8_t snr, smtc_modem_event_downda
 
 static void on_modem_clk_synch( smtc_modem_event_time_status_t time_status )
 {
-    printk("%s %d KKKKKKKKKKKKKKKKKK (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
-
-
-
-
-
     /* Set the ADR according to the region */
     tracker_app_set_adr( );
 

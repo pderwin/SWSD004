@@ -2,6 +2,7 @@ zephyr_library()
 
 zephyr_library_sources(
     main_tracker_application.c
+    firmware_update.c
 )
 
 add_subdirectory(tracker_utility)
