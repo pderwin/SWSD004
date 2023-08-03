@@ -439,17 +439,29 @@ lr11xx_status_t lr11xx_system_get_temp( const void* context, uint16_t* temp )
 lr11xx_status_t lr11xx_system_set_sleep( const void* context, const lr11xx_system_sleep_cfg_t sleep_cfg,
                                          const uint32_t sleep_time )
 {
-    const uint8_t cbuffer[LR11XX_SYSTEM_SET_SLEEP_CMD_LENGTH] = {
-        ( uint8_t ) ( LR11XX_SYSTEM_SET_SLEEP_OC >> 8 ),
-        ( uint8_t ) ( LR11XX_SYSTEM_SET_SLEEP_OC >> 0 ),
-        ( sleep_cfg.is_rtc_timeout << 1 ) + sleep_cfg.is_warm_start,
-        ( uint8_t ) ( sleep_time >> 24 ),
-        ( uint8_t ) ( sleep_time >> 16 ),
-        ( uint8_t ) ( sleep_time >> 8 ),
-        ( uint8_t ) ( sleep_time >> 0 ),
-    };
+   lr11xx_status_t
+      status;
 
-    return ( lr11xx_status_t ) lr11xx_hal_write( context, cbuffer, LR11XX_SYSTEM_SET_SLEEP_CMD_LENGTH, 0, 0 );
+   const uint8_t cbuffer[LR11XX_SYSTEM_SET_SLEEP_CMD_LENGTH] = {
+      ( uint8_t ) ( LR11XX_SYSTEM_SET_SLEEP_OC >> 8 ),
+      ( uint8_t ) ( LR11XX_SYSTEM_SET_SLEEP_OC >> 0 ),
+      ( sleep_cfg.is_rtc_timeout << 1 ) + sleep_cfg.is_warm_start,
+      ( uint8_t ) ( sleep_time >> 24 ),
+      ( uint8_t ) ( sleep_time >> 16 ),
+      ( uint8_t ) ( sleep_time >> 8 ),
+      ( uint8_t ) ( sleep_time >> 0 ),
+   };
+
+   status = lr11xx_hal_write( context, cbuffer, LR11XX_SYSTEM_SET_SLEEP_CMD_LENGTH, 0, 0 );
+
+   /*
+    * If successful in going to sleep, then change modes.
+    */
+   if (status == LR11XX_STATUS_OK) {
+      lr11xx_hal_set_operating_mode( context, LR11XX_HAL_OP_MODE_SLEEP);
+   }
+
+   return status;
 }
 
 lr11xx_status_t lr11xx_system_set_standby( const void* context, const lr11xx_system_standby_cfg_t standby_cfg )
