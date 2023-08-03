@@ -780,32 +780,11 @@ void lr1_stack_mac_rx_timer_configure( lr1_stack_mac_t* lr1_mac, const rx_win_ty
                                   +smtc_modem_hal_get_board_delay_ms( ) +
                                   lr1_mac->fine_tune_board_setting_delay_ms[lr1_mac->rx_data_rate];
 
-
-        TRACE4(TAG_BOARD_DELAY,
-              board_delay_ms,
-              smtc_modem_hal_get_radio_tcxo_startup_delay_ms( ),
-              smtc_modem_hal_get_board_delay_ms( ),
-              lr1_mac->fine_tune_board_setting_delay_ms[lr1_mac->rx_data_rate]);
-
         smtc_real_get_rx_window_parameters( lr1_mac, lr1_mac->rx_data_rate, delay_ms, &lr1_mac->rx_window_symb,
                                             &lr1_mac->rx_timeout_symb_in_ms, &lr1_mac->rx_timeout_ms, 0 );
 
-        TRACE5(TAG_RX_WINDOW_PARAMETERS,
-              lr1_mac->rx_data_rate,
-              delay_ms,
-              lr1_mac->rx_window_symb,
-              lr1_mac->rx_timeout_symb_in_ms,
-              lr1_mac->rx_timeout_ms);
-
         smtc_real_get_rx_start_time_offset_ms( lr1_mac, lr1_mac->rx_data_rate, board_delay_ms, lr1_mac->rx_window_symb,
                                                &lr1_mac->rx_offset_ms );
-
-
-        TRACE4(TAG_RX_START_TIME_OFFSET,
-               lr1_mac->rx_data_rate,
-               board_delay_ms,
-               lr1_mac->rx_window_symb,
-               lr1_mac->rx_offset_ms );
 
         SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG(
             "rx_offset_ms:%d, rx_timeout_symb_in_ms:%d, rx_window_symb: %d, board_delay_ms:%d\n", lr1_mac->rx_offset_ms,
