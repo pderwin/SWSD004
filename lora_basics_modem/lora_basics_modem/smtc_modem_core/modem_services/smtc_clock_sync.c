@@ -473,7 +473,7 @@ clock_sync_ret_t clock_sync_request( clock_sync_ctx_t* ctx )
         uint8_t tx_buffer_length_out = 0;
 
         // The randomness value is used because the frame must be sent at time
-        uint32_t now = smtc_modem_hal_get_time_in_s();
+//        uint32_t now = smtc_modem_hal_get_time_in_s();
 
         uint32_t target_send_time = smtc_modem_hal_get_time_in_s( ) + smtc_modem_hal_get_random_nb_in_range( 1, 3 );
         uint8_t  app_time_ans_required = false;
@@ -499,7 +499,7 @@ clock_sync_ret_t clock_sync_request( clock_sync_ctx_t* ctx )
         {
            static uint32_t payload_count = 0;
 
-           TRACE2(TAG_CLOCK_SYNC, now, payload_count);
+//           TRACE2(TAG_CLOCK_SYNC, now, payload_count);
            payload_count++;
         }
 

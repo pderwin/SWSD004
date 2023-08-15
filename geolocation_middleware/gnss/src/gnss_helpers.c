@@ -413,6 +413,7 @@ bool smtc_gnss_get_almanac_update_status( const void* radio_context, const uint3
     /* Get visible satellites for GPS constellation */
     if( constellations & LR11XX_GNSS_GPS_MASK )
     {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
         status = lr11xx_gnss_get_nb_visible_satellites( radio_context, ( lr11xx_gnss_date_t ) date, assistance_position,
                                                         LR11XX_GNSS_GPS_MASK, &nb_visible_gps_satellites );
         if( status != LR11XX_STATUS_OK )
@@ -450,6 +451,7 @@ bool smtc_gnss_get_almanac_update_status( const void* radio_context, const uint3
     /* Get visible satellites for BEIDOU constellation */
     if( constellations & LR11XX_GNSS_BEIDOU_MASK )
     {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
         status = lr11xx_gnss_get_nb_visible_satellites( radio_context, ( lr11xx_gnss_date_t ) date, assistance_position,
                                                         LR11XX_GNSS_BEIDOU_MASK, &nb_visible_beidou_satellites );
         if( status != LR11XX_STATUS_OK )
@@ -540,6 +542,7 @@ bool smtc_gnss_get_doppler_error( const void* radio_context, const uint32_t date
     /* Get visible satellites for GPS constellation */
     if( constellations & LR11XX_GNSS_GPS_MASK )
     {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
         status = lr11xx_gnss_get_nb_visible_satellites( radio_context, ( lr11xx_gnss_date_t ) date, assistance_position,
                                                         LR11XX_GNSS_GPS_MASK, &nb_visible_gps_satellites );
         if( status != LR11XX_STATUS_OK )
@@ -556,9 +559,12 @@ bool smtc_gnss_get_doppler_error( const void* radio_context, const uint32_t date
         }
     }
 
+
+
     /* Get visible satellites for BEIDOU constellation */
     if( constellations & LR11XX_GNSS_BEIDOU_MASK )
     {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
         status = lr11xx_gnss_get_nb_visible_satellites( radio_context, ( lr11xx_gnss_date_t ) date, assistance_position,
                                                         LR11XX_GNSS_BEIDOU_MASK, &nb_visible_beidou_satellites );
         if( status != LR11XX_STATUS_OK )

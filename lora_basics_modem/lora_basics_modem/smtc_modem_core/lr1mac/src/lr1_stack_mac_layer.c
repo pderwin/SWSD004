@@ -808,7 +808,7 @@ void lr1_stack_mac_rx_timer_configure( lr1_stack_mac_t* lr1_mac, const rx_win_ty
         }
         else
         {
-            TRACE5(TAG_CONFIGURE_RX_WINDOW, tcurrent_ms, talarm_ms, lr1_mac->rx_offset_ms, delay_ms, lr1_mac->isr_tx_done_radio_timestamp);
+//            TRACE5(TAG_CONFIGURE_RX_WINDOW, tcurrent_ms, talarm_ms, lr1_mac->rx_offset_ms, delay_ms, lr1_mac->isr_tx_done_radio_timestamp);
 
             lr1_stack_mac_rx_radio_start( lr1_mac, type, tcurrent_ms + talarm_ms + lr1_mac->rx_offset_ms );
             SMTC_MODEM_HAL_TRACE_PRINTF( "  Timer will expire in %d ms\n", ( talarm_ms + lr1_mac->rx_offset_ms ) );

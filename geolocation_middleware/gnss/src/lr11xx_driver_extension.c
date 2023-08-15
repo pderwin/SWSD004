@@ -36,7 +36,7 @@
  * -----------------------------------------------------------------------------
  * --- DEPENDENCIES ------------------------------------------------------------
  */
-
+#include <zephyr/kernel.h>
 #include "lr11xx_hal.h"
 #include "lr11xx_driver_extension.h"
 
@@ -120,6 +120,7 @@ lr11xx_status_t lr11xx_gnss_get_nb_visible_satellites(
 {
     const int16_t latitude  = ( ( assistance_position->latitude * 2048 ) / LR11XX_GNSS_SCALING_LATITUDE );
     const int16_t longitude = ( ( assistance_position->longitude * 2048 ) / LR11XX_GNSS_SCALING_LONGITUDE );
+
     const uint8_t cbuffer[LR11XX_GNSS_GET_SV_VISIBLE_CMD_LENGTH] = {
         ( uint8_t )( LR11XX_GNSS_GET_SV_VISIBLE_OC >> 8 ),
         ( uint8_t )( LR11XX_GNSS_GET_SV_VISIBLE_OC >> 0 ),
@@ -133,6 +134,8 @@ lr11xx_status_t lr11xx_gnss_get_nb_visible_satellites(
         ( uint8_t )( longitude >> 0 ),
         ( uint8_t )( constellation - 1 ),
     };
+
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 
     return ( lr11xx_status_t ) lr11xx_hal_read( context, cbuffer, LR11XX_GNSS_GET_SV_VISIBLE_CMD_LENGTH, nb_visible_sv,
                                                 1 );

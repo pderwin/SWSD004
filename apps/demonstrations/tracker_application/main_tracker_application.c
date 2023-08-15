@@ -302,7 +302,7 @@ void semtracker_application( void *p1, void *p2, void *p3)
 
     static uint8_t join_eui[8] = { 0x70, 0xB3, 0xD5, 0x7E, 0xD0, 0x03, 0x31, 0xC9 };
     static uint8_t dev_eui[8]  = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x03 };
-    static uint8_t app_key[16] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+    static uint8_t app_key[16] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfe };
 
     static apps_modem_event_callback_t smtc_event_callback = {
         .adr_mobile_to_static  = NULL,
@@ -1145,6 +1145,14 @@ static void on_modem_network_joined( void )
     HAL_DBG_TRACE_INFO( "Initializing Wi-Fi middleware v%d.%d.%d\n", mw_version.major, mw_version.minor,
                         mw_version.patch );
     wifi_mw_init( tracker_modem_radio, stack_id );
+
+
+    /*
+     * Start a Wifi sniff
+     */
+    printk( "Start Wi-Fi scan\n" );
+    wifi_mw_scan_start( 0 );
+
 }
 
 static void on_modem_down_data( int8_t rssi, int8_t snr, smtc_modem_event_downdata_window_t rx_window, uint8_t port,

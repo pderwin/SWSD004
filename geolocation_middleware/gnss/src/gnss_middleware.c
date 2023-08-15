@@ -537,7 +537,6 @@ mw_return_code_t gnss_mw_set_user_aiding_position( float latitude, float longitu
     user_aiding_position_update_received  = true;
 
     /* We can switch to assisted scan for the next scan */
-    printk("%s %d ASSISTED (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
     current_scan_type = GNSS_MW_SCAN_TYPE_ASSISTED;
 
     return MW_RC_OK;
