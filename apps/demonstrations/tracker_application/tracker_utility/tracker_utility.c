@@ -134,7 +134,7 @@
 /*!
  * @brief Modem radio
  */
-extern ralf_t* modem_radio;
+extern ralf_t* tracker_modem_radio;
 
 /*!
  * @brief Demo application context structure
@@ -1442,7 +1442,7 @@ uint8_t tracker_parse_cmd( uint8_t stack_id, uint8_t* payload, uint8_t* buffer_o
                 if( tracker_ctx.has_lr11xx_trx_firmware == true )
                 {
                     get_almanac_dates_status = smtc_board_get_almanac_dates(
-                        modem_radio->ral.context, &oldest_almanac_date, &newest_almanac_date );
+                       tracker_modem_radio->ral.context, &oldest_almanac_date, &newest_almanac_date );
                 }
 
                 if( get_almanac_dates_status == true )
@@ -1483,7 +1483,7 @@ uint8_t tracker_parse_cmd( uint8_t stack_id, uint8_t* payload, uint8_t* buffer_o
                             /* note : the + 2 represents the alamac_fragment_id len in bytes */
                             memcpy( almanac_one_sv_buffer,
                                     payload + payload_index + 2 + ( LR11XX_GNSS_SINGLE_ALMANAC_WRITE_SIZE * i ), 20 );
-                            lr11xx_gnss_almanac_update( modem_radio->ral.context, almanac_one_sv_buffer, 1 );
+                            lr11xx_gnss_almanac_update( tracker_modem_radio->ral.context, almanac_one_sv_buffer, 1 );
                         }
                     }
 
@@ -1508,7 +1508,7 @@ uint8_t tracker_parse_cmd( uint8_t stack_id, uint8_t* payload, uint8_t* buffer_o
                         lr11xx_gnss_context_status_bytestream_t context_status_bytestream;
                         lr11xx_gnss_context_status_t            context_status;
 
-                        if( lr11xx_gnss_get_context_status( modem_radio->ral.context, context_status_bytestream ) !=
+                        if( lr11xx_gnss_get_context_status( tracker_modem_radio->ral.context, context_status_bytestream ) !=
                             LR11XX_STATUS_OK )
                         {
                             HAL_DBG_TRACE_ERROR( "Failed to get gnss context status\n" );
@@ -2076,7 +2076,7 @@ uint8_t tracker_parse_cmd( uint8_t stack_id, uint8_t* payload, uint8_t* buffer_o
                 uint16_t nb_of_uplinks_before_reset;
 
                 /* get the dates form the LR11XX */
-                smtc_board_get_almanac_dates( modem_radio->ral.context, &oldest_almanac_date, &newest_almanac_date );
+                smtc_board_get_almanac_dates( tracker_modem_radio->ral.context, &oldest_almanac_date, &newest_almanac_date );
 
                 smtc_modem_connection_timeout_get_current_values( stack_id, &nb_of_uplinks_before_network_controlled,
                                                                   &nb_of_uplinks_before_reset );
