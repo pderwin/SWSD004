@@ -301,7 +301,7 @@ void semtracker_application( void *p1, void *p2, void *p3)
     uint32_t sleep_time_ms                   = 0;
 
     static uint8_t join_eui[8] = { 0x70, 0xB3, 0xD5, 0x7E, 0xD0, 0x03, 0x31, 0xC9 };
-    static uint8_t dev_eui[8]  = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0a, 0x03 };
+    static uint8_t dev_eui[8]  = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0b, 0x03 };
     static uint8_t app_key[16] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfe };
 
     static apps_modem_event_callback_t smtc_event_callback = {
@@ -325,8 +325,6 @@ void semtracker_application( void *p1, void *p2, void *p3)
         .middleware_2          = on_middleware_wifi_event,
     };
 
-    printk("%s %d MAIN TRACKER ENTRY (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
-
     /*
      * Get some debug pins initialized
      */
@@ -336,9 +334,10 @@ void semtracker_application( void *p1, void *p2, void *p3)
     tracker_modem_radio = smtc_board_initialise_and_get_ralf( );
 
     /*
-     * Setup the context of the modem_radio to point to our lora device driver.
+     * Some board-specific things that need to be moved out of here some day
      */
-   {
+#ifndef CONFIG_BOARD_MOKO_LW008
+    {
       const struct device *lna_dev;
 
       lna_dev = device_get_binding("gpio@50000000");
@@ -351,7 +350,6 @@ void semtracker_application( void *p1, void *p2, void *p3)
          printk("%s: GPIO_1 block not found\n", __func__);
       }
    }
-
 
 #define FORCE_GPIO_1_7_HIGH 1
 #if	defined(FORCE_GPIO_1_7_HIGH)
@@ -370,10 +368,8 @@ void semtracker_application( void *p1, void *p2, void *p3)
           printk("%s: GPIO_1 block not found\n", __func__);
        }
     }
-#else
-#error NOT DOING FORCE
 #endif
-
+#endif
 
     /*
      * TODO: the context really should be given to the modem_radio as it is
@@ -902,8 +898,6 @@ static bool tracker_app_lr11xx_check_firmware_version( const void* context )
      * Modem-E */
     lr11xx_busy_pin_state = smtc_board_read_busy_pin( context );
 
-    printk("%s %d lr11xx_busy_pin_state: %d (from %p) \n", __func__, __LINE__,  lr11xx_busy_pin_state, __builtin_return_address(0) );
-
     if( lr11xx_busy_pin_state == 0 )
     {
         /* LR1110 is in transceiver mode */
@@ -917,7 +911,7 @@ static bool tracker_app_lr11xx_check_firmware_version( const void* context )
             {
 #if 1
                /*
-                * Update the senssor firmware with code that is built into this image.
+                * Update the sensor firmware with code that is built into this image.
                 */
                firmware_update(tracker_modem_radio->ral.context);
 #else
