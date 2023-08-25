@@ -36,7 +36,7 @@
  * -----------------------------------------------------------------------------
  * --- DEPENDENCIES ------------------------------------------------------------
  */
-
+#include <zephyr/kernel.h>
 #include <stdint.h>   // C99 types
 #include <stdbool.h>  // bool type
 
@@ -119,14 +119,14 @@ void lr11xx_get_tx_cfg( lr11xx_pa_type_t pa_type, int8_t expected_output_pwr_in_
 void ral_lr11xx_bsp_get_rf_switch_cfg( const void* context, lr11xx_system_rfswitch_cfg_t* rf_switch_cfg )
 {
     rf_switch_cfg->enable =
-        LR11XX_SYSTEM_RFSW0_HIGH | LR11XX_SYSTEM_RFSW1_HIGH | LR11XX_SYSTEM_RFSW2_HIGH | LR11XX_SYSTEM_RFSW3_HIGH;
+        LR11XX_SYSTEM_RFSW0_HIGH | LR11XX_SYSTEM_RFSW1_HIGH;
     rf_switch_cfg->standby = 0;
     rf_switch_cfg->rx      = LR11XX_SYSTEM_RFSW0_HIGH;
     rf_switch_cfg->tx      = LR11XX_SYSTEM_RFSW0_HIGH | LR11XX_SYSTEM_RFSW1_HIGH;
     rf_switch_cfg->tx_hp   = LR11XX_SYSTEM_RFSW1_HIGH;
     rf_switch_cfg->tx_hf   = 0;
-    rf_switch_cfg->gnss    = LR11XX_SYSTEM_RFSW2_HIGH;
-    rf_switch_cfg->wifi    = LR11XX_SYSTEM_RFSW3_HIGH;
+    rf_switch_cfg->gnss    = 0; // LR11XX_SYSTEM_RFSW2_HIGH;
+    rf_switch_cfg->wifi    = 0; // LR11XX_SYSTEM_RFSW3_HIGH;
 }
 
 void ral_lr11xx_bsp_get_tx_cfg( const void* context, const ral_lr11xx_bsp_tx_cfg_input_params_t* input_params,
