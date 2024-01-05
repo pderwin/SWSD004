@@ -36,7 +36,7 @@
  * -----------------------------------------------------------------------------
  * --- DEPENDENCIES ------------------------------------------------------------
  */
-
+#include <zephyr/kernel.h>
 #include <string.h>
 
 #include "mw_assert.h"
@@ -151,6 +151,14 @@ bool smtc_wifi_get_results( const void* radio_context, wifi_scan_all_result_t* w
     if( status != LR11XX_STATUS_OK )
     {
         MW_DBG_TRACE_ERROR( "Failed to get Wi-Fi scan number of results\n" );
+        return false;
+    }
+
+    printk("%s %d nbr: %d (from %p) \n", __func__, __LINE__, nb_results,  __builtin_return_address(0) );
+
+    /* if no results, then bail */
+    if (nb_results == 0) {
+        MW_DBG_TRACE_ERROR( "No WiFi results to return\n" );
         return false;
     }
 

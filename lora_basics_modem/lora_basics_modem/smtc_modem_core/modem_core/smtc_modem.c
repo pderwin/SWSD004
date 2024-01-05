@@ -1662,6 +1662,8 @@ smtc_modem_return_code_t smtc_modem_request_uplink( uint8_t stack_id, uint8_t f_
     RETURN_BUSY_IF_TEST_MODE( );
     RETURN_INVALID_IF_NULL( payload );
 
+    printk("%s %d f_port: %d (from %px) \n", __func__, __LINE__, f_port, __builtin_return_address(0) );
+
     smtc_modem_return_code_t return_code = SMTC_MODEM_RC_OK;
     return_code                          = smtc_modem_send_tx( f_port, confirmed, payload, payload_length, false, 0 );
     return return_code;
@@ -1671,16 +1673,19 @@ smtc_modem_return_code_t smtc_modem_request_extended_uplink( uint8_t stack_id, u
                                                              uint8_t extended_uplink_id,
                                                              void ( *lbm_notification_callback )( void ) )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
     UNUSED( stack_id );
     RETURN_BUSY_IF_TEST_MODE( );
     RETURN_INVALID_IF_NULL( payload );
     RETURN_INVALID_IF_NULL( lbm_notification_callback );
+    printk("%s %d eui: %d  (from %p) \n", __func__, __LINE__, extended_uplink_id, __builtin_return_address(0) );
     if( extended_uplink_id == 1 )
     {
 #ifndef TASK_EXTENDED_1
         return SMTC_MODEM_RC_INVALID;
 #endif
     }
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
     if( extended_uplink_id == 2 )
     {
 #ifndef TASK_EXTENDED_2
@@ -1688,16 +1693,21 @@ smtc_modem_return_code_t smtc_modem_request_extended_uplink( uint8_t stack_id, u
 #endif
     }
 
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
     smtc_modem_return_code_t return_code = SMTC_MODEM_RC_OK;
+
     if( ( extended_uplink_id == 1 ) || ( extended_uplink_id == 2 ) )
     {
         modem_set_extended_callback( lbm_notification_callback, extended_uplink_id );
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
         return_code = smtc_modem_send_tx( f_port, confirmed, payload, payload_length, false, extended_uplink_id );
     }
     else
     {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
         return_code = SMTC_MODEM_RC_INVALID;
     }
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
     return return_code;
 }
 
@@ -2979,28 +2989,37 @@ static smtc_modem_return_code_t smtc_modem_send_tx( uint8_t f_port, bool confirm
     smtc_modem_return_code_t return_code = SMTC_MODEM_RC_OK;
     smodem_task              task_send;
 
+    printk("%s %d f_port: %d (from %px) \n", __func__, __LINE__, f_port, __builtin_return_address(0) );
+
     if( is_modem_connected( ) == false )
     {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
         return_code = SMTC_MODEM_RC_FAIL;
     }
 
     else if( ( ( ( f_port == 0 ) || ( f_port >= 224 ) ) && !lorawan_api_modem_certification_is_enabled( ) ) ||
              ( f_port == get_modem_dm_port( ) ) )
     {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
         return_code = SMTC_MODEM_RC_INVALID;
         SMTC_MODEM_HAL_TRACE_ERROR( "%s port %d is forbidden \n", __func__, f_port );
     }
     else
     {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
         if( emergency == true )
         {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
             task_send.priority = TASK_VERY_HIGH_PRIORITY;
             lorawan_api_duty_cycle_enable_set( SMTC_DTC_PARTIAL_DISABLED );
         }
         else
         {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
             task_send.priority = TASK_HIGH_PRIORITY;
         }
+        printk("%s %d tbi: %d (from %p) \n", __func__, __LINE__, tx_buffer_id, __builtin_return_address(0) );
+
         switch( tx_buffer_id )
         {
         case 0:
@@ -3028,6 +3047,7 @@ static smtc_modem_return_code_t smtc_modem_send_tx( uint8_t f_port, bool confirm
         task_send.time_to_execute_s = smtc_modem_hal_get_time_in_s( );
 
         // SMTC_MODEM_HAL_TRACE_INFO( "add task user tx payload with payload size = %d \n ", payload_length );
+        printk("%s %d add task(from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
         if( modem_supervisor_add_task( &task_send ) != TASK_VALID )
         {
             return_code = SMTC_MODEM_RC_FAIL;
@@ -3035,9 +3055,11 @@ static smtc_modem_return_code_t smtc_modem_send_tx( uint8_t f_port, bool confirm
     }
 
     //@todo indicate that can't accept a new task because task already enqueued     //   SetModemBusy ();
+    printk("%s %d return_code: %d (from %p) \n", __func__, __LINE__, return_code, __builtin_return_address(0) );
 
     return return_code;
 }
+
 
 smtc_modem_event_user_radio_access_status_t convert_rp_to_user_radio_access_status( rp_status_t rp_status )
 {
@@ -3200,6 +3222,7 @@ void callback_rp_user_radio_access_2( void* ctx )
     ral_irq_t              rp_radio_irq    = 0;
     rp_status_t            rp_status;
 
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
     rp_get_status( rp, RP_HOOK_ID_USER_SUSPEND_2, &rp_timestamp, &rp_status );
     rp_get_and_clear_raw_radio_irq( rp, RP_HOOK_ID_USER_SUSPEND_2, &rp_radio_irq );
 
@@ -3211,7 +3234,9 @@ void callback_rp_user_radio_access_2( void* ctx )
     // call user callback
     if( *user_end_task_callback_2 != NULL )
     {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
         user_end_task_callback_2( &modem_rp_status );
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
     }
 }
 #endif  // !LR1110_MODEM_E

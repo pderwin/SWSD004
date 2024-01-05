@@ -371,7 +371,7 @@ lr11xx_status_t lr11xx_system_cfg_lfclk( const void* context, const lr11xx_syste
     const uint8_t cbuffer[LR11XX_SYSTEM_CFG_LFCLK_CMD_LENGTH] = {
         ( uint8_t ) ( LR11XX_SYSTEM_CFG_LFCLK_OC >> 8 ),
         ( uint8_t ) ( LR11XX_SYSTEM_CFG_LFCLK_OC >> 0 ),
-        ( uint8_t ) ( lfclock_cfg | ( wait_for_32k_ready << 2 ) ),
+        ( uint8_t ) ( 0 /* lfclock_cfg */ | ( wait_for_32k_ready << 2 ) ),
     };
 
     return ( lr11xx_status_t ) lr11xx_hal_write( context, cbuffer, LR11XX_SYSTEM_CFG_LFCLK_CMD_LENGTH, 0, 0 );

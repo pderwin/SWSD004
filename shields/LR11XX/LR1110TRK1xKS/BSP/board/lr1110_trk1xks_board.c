@@ -48,6 +48,7 @@
 #include "smtc_modem_test_api.h"
 #include "smtc_modem_hal.h"
 #include "lr11xx_hal.h"
+#include "pe4259.h"
 
 /*
  * -----------------------------------------------------------------------------
@@ -246,9 +247,14 @@ bool smtc_board_get_usr_button( void )
 
 void smtc_board_wifi_prescan( void )
 {
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+
     hal_mcu_partial_sleep_enable( true );
-    smtc_board_spdt_2g4_on( );
-    smtc_board_set_wifi_antenna( );
+
+    pe4259_select( PE4259_SELECT_RF_WIFI );
+
+//    smtc_board_spdt_2g4_on( );
+//    smtc_board_set_wifi_antenna( );
 };
 
 void smtc_board_wifi_postscan( void )
@@ -324,7 +330,7 @@ void smtc_board_spdt_2g4_off( void ) {
        // hal_gpio_set_value( VCC_SWITCH_WIFI_BLE, 0 );
 }
 
-void smtc_board_set_wifi_antenna( void )
+void Asmtc_board_set_wifi_antenna( void )
 {
     /* SWITCH_WIFI_BLE_Pin = 1 ==> Wi-Fi */
     printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );

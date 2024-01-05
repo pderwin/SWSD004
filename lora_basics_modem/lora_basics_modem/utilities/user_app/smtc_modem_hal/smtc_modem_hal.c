@@ -39,6 +39,7 @@
 #include <stdint.h>   // C99 types
 #include <stdbool.h>  // bool type
 #include <zephyr/kernel.h>
+#include <zephyr/drivers/trace.h>
 
 #include "smtc_modem_hal.h"
 #if PHIL
@@ -172,6 +173,8 @@ uint32_t smtc_modem_hal_get_radio_irq_timestamp_in_100us( void )
 
 void smtc_modem_hal_start_timer( const uint32_t milliseconds, void ( *callback )( void* context ), void* context )
 {
+   TRACE4(TAG_SMTC_MODEM_HAL_START_TIMER, milliseconds, callback, context, __builtin_return_address(0));
+
     hal_lp_timer_start( milliseconds, &( hal_lp_timer_irq_t ){ .context = context, .callback = callback } );
 }
 

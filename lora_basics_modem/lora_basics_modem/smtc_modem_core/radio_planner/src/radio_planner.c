@@ -287,7 +287,7 @@ rp_hook_status_t rp_task_enqueue( radio_planner_t* rp, const rp_task_t* task, ui
 
 
 
-    TRACE6(TAG_TASK_ENQUEUE, hook_id, payload, payload_size, task->state, task->type, task->start_time_ms);
+    TRACE8(TAG_RADIO_PLANNER_TASK_ENQUEUE, hook_id, payload, payload_size, task->state, task->type, task->start_time_ms, now, __builtin_return_address(0) );
 
     if( ( task->state == RP_TASK_STATE_SCHEDULE ) && ( ( ( int32_t )( task->start_time_ms - now ) <= 0 ) ) )
     {

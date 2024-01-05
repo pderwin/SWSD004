@@ -36,7 +36,7 @@
  * -----------------------------------------------------------------------------
  * --- DEPENDENCIES ------------------------------------------------------------
  */
-
+#include <zephyr/kernel.h>
 #include "lr11xx_wifi.h"
 #include "lr11xx_system_types.h"
 #include "lr11xx_hal.h"
@@ -588,6 +588,9 @@ static lr11xx_hal_status_t lr11xx_wifi_read_results_helper( const void* context,
                                                                   ( uint8_t ) ( LR11XX_WIFI_READ_RESULT_OC & 0x00FF ),
                                                                   start_index, n_elem, result_format_code };
     const uint16_t size_total                                  = n_elem * size_single_elem;
+
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+
     return lr11xx_hal_read( context, cbuffer, LR11XX_WIFI_READ_RESULT_CMD_LENGTH, buffer, size_total );
 }
 

@@ -49,6 +49,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/drivers/trace.h>
 #include <stdio.h>
 #include <string.h>
 #include "firmware_update.h"
@@ -59,6 +60,9 @@
 
 #define SEMTRACKER_PRIORITY  (4)
 #define SEMTRACKER_STACKSIZE (2048)
+
+K_THREAD_STACK_DEFINE(semtracker_stack_area, SEMTRACKER_STACKSIZE);
+struct k_thread	semtracker_kthread;
 
 #ifdef PHIL
 
@@ -278,13 +282,6 @@ static void on_modem_almanac_update( smtc_modem_event_almanac_update_status_t st
  */
 static void on_middleware_gnss_event( uint8_t pending_events );
 
-/*!
- * @brief Wi-Fi middleware event callback
- *
- * @param [in] pending_events Events returned by the Wi-Fi middleware event
- */
-static void on_middleware_wifi_event( uint8_t pending_events );
-
 /*
  * -----------------------------------------------------------------------------
  * --- PUBLIC FUNCTIONS DEFINITION ---------------------------------------------
@@ -292,17 +289,24 @@ static void on_middleware_wifi_event( uint8_t pending_events );
 const void *lr11xx_hal_get_radio_context( void );
 
 extern void     debug_gpio_init      (void);
+extern void on_wifi_event (uint8_t pending_events);
+
+extern uint32_t accel_has_moved (void);
+extern void     wifi_scan_start (void);
 
 /**
  * @brief Main application entry point.
  */
 void semtracker_application( void *p1, void *p2, void *p3)
 {
-    uint32_t sleep_time_ms                   = 0;
-
-    static uint8_t join_eui[8] = { 0x70, 0xB3, 0xD5, 0x7E, 0xD0, 0x03, 0x31, 0xC9 };
-    static uint8_t dev_eui[8]  = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0b, 0x03 };
-    static uint8_t app_key[16] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfe };
+    uint32_t
+       curr_time_secs,
+       last_wifi_scan_secs = 0,
+       sleep_time_ms       = 0;
+    static uint8_t
+       app_key[16] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfe },
+       dev_eui[8]  = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0b, 0x03 },
+       join_eui[8] = { 0x70, 0xB3, 0xD5, 0x7E, 0xD0, 0x03, 0x31, 0xC9 };
 
     static apps_modem_event_callback_t smtc_event_callback = {
         .adr_mobile_to_static  = NULL,
@@ -322,7 +326,7 @@ void semtracker_application( void *p1, void *p2, void *p3)
         .upload_done           = NULL,
         .user_radio_access     = NULL,
         .middleware_1          = on_middleware_gnss_event,
-        .middleware_2          = on_middleware_wifi_event,
+        .middleware_2          = on_wifi_event,
     };
 
     /*
@@ -426,12 +430,10 @@ void semtracker_application( void *p1, void *p2, void *p3)
 
     while( 1 )
     {
+       TRACE(TAG_TRACKER_RUN_ENGINE);
+
         /* Execute modem runtime, this function must be called again in sleep_time_ms milliseconds or sooner. */
         sleep_time_ms = smtc_modem_run_engine( );
-
-
-
-
 
         if( get_hall_effect_irq_state( ) == true )
         {
@@ -442,10 +444,16 @@ void semtracker_application( void *p1, void *p2, void *p3)
         else
         {
            /* go in low power */
+           TRACE(TAG_TRACKER_SLEEP);
            hal_mcu_set_sleep_for_ms( sleep_time_ms );
-#ifdef PHIL
 
-            if( tracker_ctx.airplane_mode == false )
+           TRACE1(TAG_TRACKER_WAKE,tracker_ctx.airplane_mode  );
+
+           /*
+            * Erwin -- changed this test so that we are looking for the accelerometer to
+            *          cause a Wifi scan.
+            */
+           if( tracker_ctx.airplane_mode == true /* false */ )
             {
                 /* Wake up from static mode thanks the accelerometer ? */
                 if( ( get_accelerometer_irq1_state( ) == true ) &&
@@ -463,14 +471,28 @@ void semtracker_application( void *p1, void *p2, void *p3)
             else
             {
                 /* Wake up thanks the accelerometer and in airplane mode ? */
-                if( is_accelerometer_detected_moved( ) == true )
+                if( accel_has_moved( ) == true )
                 {
-                    smtc_board_hall_effect_enable_for_duration( TRACKER_AIRPLANE_HALL_EFFECT_TIMEOUT_MS );
-                    HAL_DBG_TRACE_PRINTF( "Start hall effect sensor for %ds\n",
-                                          TRACKER_AIRPLANE_HALL_EFFECT_TIMEOUT_MS / 1000 );
+
+                   /*
+                    * Don't do a new scan within 5 seconds of the last one.
+                    */
+                   curr_time_secs =  smtc_modem_hal_get_time_in_s( );
+
+                   TRACE2(TAG_SEMTRACKER_ACCEL, curr_time_secs, last_wifi_scan_secs);
+
+                   if (curr_time_secs - last_wifi_scan_secs > 10) {
+
+                      last_wifi_scan_secs = curr_time_secs;
+
+                      wifi_scan_start();
+                   }
+
+//                    smtc_board_hall_effect_enable_for_duration( TRACKER_AIRPLANE_HALL_EFFECT_TIMEOUT_MS );
+//                    HAL_DBG_TRACE_PRINTF( "Start hall effect sensor for %ds\n",
+//                                          TRACKER_AIRPLANE_HALL_EFFECT_TIMEOUT_MS / 1000 );
                 }
             }
-#endif
         } // else
     } // while(1)
 }
@@ -1062,7 +1084,7 @@ static void on_modem_reset( uint16_t reset_count )
         /* Start the BLE thread*/
 // PHIL        start_ble_thread( TRACKER_ADV_TIMEOUT_MS );
 
-        /* Check if the batteries are too low, if yes switch the tracker in airplane mode, \note if this test is
+       /* Check if the batteries are too low, if yes switch the tracker in airplane mode, \note if this test is
          * moved elsewhere in this app the TRACKER_BOARD_MAX_VOLTAGE_RECOVERY_TIME value should be evaluate again */
         smtc_board_measure_battery_drop( stack_id, tracker_ctx.lorawan_region, &voltage_drop, &voltage_recovery_time );
 
@@ -1075,16 +1097,15 @@ static void on_modem_reset( uint16_t reset_count )
             smtc_board_leds_blink( smtc_board_get_led_all_mask( ), 500, 5 );
         }
 
-        if( tracker_ctx.airplane_mode == false )
-        {
-            /* Start the Join process */
-            ASSERT_SMTC_MODEM_RC( smtc_modem_join_network( stack_id ) );
+        if( tracker_ctx.airplane_mode == false ) {
+           /* Start the Join process */
+           ASSERT_SMTC_MODEM_RC( smtc_modem_join_network( stack_id ) );
 
-            HAL_DBG_TRACE_INFO( "###### ===== JOINING ==== ######\n\n" );
+           HAL_DBG_TRACE_INFO( "###### ===== JOINING ==== ######\n\n" );
 
-            /* Notify user with leds for join process */
-            smtc_board_start_periodic_led_pulse( smtc_board_get_led_rx_mask( ) | smtc_board_get_led_tx_mask( ),
-                                                 LED_JOIN_PULSE_MS, LED_JOIN_PERIOD_MS );
+           /* Notify user with leds for join process */
+           smtc_board_start_periodic_led_pulse( smtc_board_get_led_rx_mask( ) | smtc_board_get_led_tx_mask( ),
+                                                LED_JOIN_PULSE_MS, LED_JOIN_PERIOD_MS );
         }
         else
         {
@@ -1099,16 +1120,17 @@ static void on_modem_reset( uint16_t reset_count )
     }
 }
 
+extern void wifi_init (void);
+
 static void on_modem_network_joined( void )
 {
-    mw_version_t mw_version;
     smtc_modem_return_code_t
        rc;
 
     /*
-     * Request a time sync every 30 seconds.
+     * Request a time sync every hour.
      */
-    smtc_modem_time_set_sync_interval_s(15);
+    smtc_modem_time_set_sync_interval_s(60 * 60);
 
     /*
      * Start a clock sync service
@@ -1126,27 +1148,21 @@ static void on_modem_network_joined( void )
     ASSERT_SMTC_MODEM_RC( smtc_modem_connection_timeout_set_thresholds( stack_id, 0, 0 ) );
 
     /* Initialize GNSS middleware */
-    gnss_mw_get_version( &mw_version );
-    HAL_DBG_TRACE_INFO( "Initializing GNSS middleware v%d.%d.%d\n", mw_version.major, mw_version.minor,
-                        mw_version.patch );
-    gnss_mw_init( tracker_modem_radio, stack_id );
-    gnss_mw_set_constellations( GNSS_MW_CONSTELLATION_GPS_BEIDOU );
-    gnss_mw_set_user_aiding_position( tracker_ctx.gnss_assistance_position_latitude,
-                                      tracker_ctx.gnss_assistance_position_longitude );
+#if (ENABLE_GNSS > 0)
+    {
+       mw_version_t mw_version;
 
-    /* Initialize Wi-Fi middleware */
-    wifi_mw_get_version( &mw_version );
-    HAL_DBG_TRACE_INFO( "Initializing Wi-Fi middleware v%d.%d.%d\n", mw_version.major, mw_version.minor,
-                        mw_version.patch );
-    wifi_mw_init( tracker_modem_radio, stack_id );
+       gnss_mw_get_version( &mw_version );
+       HAL_DBG_TRACE_INFO( "Initializing GNSS middleware v%d.%d.%d\n", mw_version.major, mw_version.minor,
+                           mw_version.patch );
+       gnss_mw_init( tracker_modem_radio, stack_id );
+       gnss_mw_set_constellations( GNSS_MW_CONSTELLATION_GPS_BEIDOU );
+       gnss_mw_set_user_aiding_position( tracker_ctx.gnss_assistance_position_latitude,
+                                         tracker_ctx.gnss_assistance_position_longitude );
+    }
+#endif
 
-
-    /*
-     * Start a Wifi sniff
-     */
-    printk( "Start Wi-Fi scan\n" );
-    wifi_mw_scan_start( 0 );
-
+    wifi_init();
 }
 
 static void on_modem_down_data( int8_t rssi, int8_t snr, smtc_modem_event_downdata_window_t rx_window, uint8_t port,
@@ -1198,12 +1214,15 @@ static void on_modem_clk_synch( smtc_modem_event_time_status_t time_status )
 
     /* Update the system_sanity_check bit field */
     tracker_ctx.system_sanity_check |= TRACKER_DOWNLINK_SUCCESSFUL_ONCE;
+
+#if (ENABLE_GNSS > 0)
     if( time_status != SMTC_MODEM_EVENT_TIME_NOT_VALID )
     {
         /* Start now the geoloc scan sequence */
         gnss_mw_scan_aggregate( false );
         gnss_mw_scan_start( GNSS_MW_MODE_MOBILE, 0 );
     }
+#endif
 }
 
 static void on_modem_almanac_update( smtc_modem_event_almanac_update_status_t status )
@@ -1380,117 +1399,41 @@ static void on_middleware_gnss_event( uint8_t pending_events )
     gnss_mw_clear_pending_events( );
 }
 
-static void on_middleware_wifi_event( uint8_t pending_events )
-{
-    /* Parse events */
-    if( wifi_mw_has_event( pending_events, WIFI_MW_EVENT_SCAN_DONE ) )
-    {
-        wifi_mw_event_data_scan_done_t wifi_scan_results;
-
-        HAL_DBG_TRACE_INFO( "Wi-Fi middleware event - SCAN DONE\n" );
-        wifi_mw_get_event_data_scan_done( &wifi_scan_results );
-        wifi_mw_display_results( &wifi_scan_results );
-
-        /* Convert GPS timestamp to UTC timestamp */
-        wifi_scan_results.timestamp = apps_modem_common_convert_gps_to_utc_time( wifi_scan_results.timestamp );
-
-        /* Store the consumption */
-        tracker_ctx.wifi_scan_charge_uAh += wifi_scan_results.power_consumption_uah;
-
-        if( tracker_ctx.internal_log_enable )
-        {
-            tracker_store_wifi_in_internal_log( &wifi_scan_results );
-        }
-    }
-
-    if( wifi_mw_has_event( pending_events, WIFI_MW_EVENT_TERMINATED ) )
-    {
-        int32_t duty_cycle_status_ms = 0;
-
-        HAL_DBG_TRACE_INFO( "Wi-Fi middleware event - TERMINATED\n" );
-        wifi_mw_get_event_data_terminated( &tracker_ctx.wifi_nb_scan_sent );
-        HAL_DBG_TRACE_PRINTF( "-- number of scans sent: %u\n", tracker_ctx.wifi_nb_scan_sent.nb_scans_sent );
-
-        ASSERT_SMTC_MODEM_RC( smtc_modem_get_duty_cycle_status( &duty_cycle_status_ms ) );
-        HAL_DBG_TRACE_PRINTF( "Remaining duty cycle %d ms\n", duty_cycle_status_ms );
-
-        /* Led start for user notification */
-        smtc_board_led_pulse( smtc_board_get_led_tx_mask( ), true, LED_PERIOD_MS );
-    }
-
-    if( wifi_mw_has_event( pending_events, WIFI_MW_EVENT_SCAN_CANCELLED ) )
-    {
-        HAL_DBG_TRACE_INFO( "Wi-Fi middleware event - SCAN CANCELLED\n" );
-    }
-
-    if( wifi_mw_has_event( pending_events, WIFI_MW_EVENT_ERROR_UNKNOWN ) )
-    {
-        HAL_DBG_TRACE_INFO( "Wi-Fi middleware event - UNEXPECTED ERROR\n" );
-    }
-
-    if( wifi_mw_has_event( pending_events, WIFI_MW_EVENT_TERMINATED ) ||
-        wifi_mw_has_event( pending_events, WIFI_MW_EVENT_ERROR_UNKNOWN ) )
-    {
-        uint32_t sequence_duration_sec = apps_modem_common_get_utc_time( ) - tracker_ctx.start_sequence_timestamp;
-
-        if( ( tracker_ctx.wifi_nb_scan_sent.nb_scans_sent == 0 ) ||
-            ( tracker_app_is_tracker_in_static_mode( ) == true ) )
-        {
-            HAL_DBG_TRACE_MSG( "No scan results good enough or keep alive frame, sensors values\n" );
-            /* Send sensors values */
-            tracker_app_read_and_send_sensors( );
-        }
-
-        if( tracker_app_is_tracker_in_static_mode( ) == true )
-        {
-            if( sequence_duration_sec > tracker_ctx.static_scan_interval )
-            {
-                sequence_duration_sec = tracker_ctx.static_scan_interval;
-            }
-
-            /* Stop Hall Effect sensors while the tracker is static */
-            smtc_board_hall_effect_enable( false );
-
-            HAL_DBG_TRACE_MSG( "Switch static mode\n" );
-            gnss_mw_scan_aggregate( true );
-            gnss_mw_scan_start( GNSS_MW_MODE_STATIC, tracker_ctx.static_scan_interval - sequence_duration_sec );
-        }
-        else
-        {
-            if( sequence_duration_sec > tracker_ctx.mobile_scan_interval )
-            {
-                sequence_duration_sec = tracker_ctx.mobile_scan_interval;
-            }
-
-            HAL_DBG_TRACE_MSG( "Continue in mobile mode\n" );
-            gnss_mw_scan_aggregate( false );
-            gnss_mw_scan_start( GNSS_MW_MODE_MOBILE, tracker_ctx.mobile_scan_interval - sequence_duration_sec );
-        }
-    }
-
-    wifi_mw_clear_pending_events( );
-}
-
 /*!
  * @}
  */
 
 /* --- EOF ------------------------------------------------------------------ */
 
-K_THREAD_STACK_DEFINE(semtracker_stack_area, SEMTRACKER_STACKSIZE);
-struct k_thread	semtracker_thread_data;
-
 ///	Start LoRa thread.
 void semtracker_thread_start(void)
 {
    k_tid_t tid;
 
-   tid = k_thread_create(&semtracker_thread_data, semtracker_stack_area,
+   tid = k_thread_create(&semtracker_kthread, semtracker_stack_area,
                          K_THREAD_STACK_SIZEOF(semtracker_stack_area),
                          semtracker_application,
                          NULL, NULL,	NULL,
                          SEMTRACKER_PRIORITY, 0, K_NO_WAIT);
 
+   printk("%s %d KID: %p   thead_data: %p (from %p) \n", __func__, __LINE__, tid, &semtracker_kthread, __builtin_return_address(0) );
+
    k_thread_name_set(tid, "semtracker");
 
+}
+
+/*-------------------------------------------------------------------------
+ *
+ * name:        semtracker_thread_wakeup
+ *
+ * description:
+ *
+ * input:
+ *
+ * output:
+ *
+ *-------------------------------------------------------------------------*/
+void semtracker_thread_wakeup (void)
+{
+   k_wakeup(&semtracker_kthread);
 }

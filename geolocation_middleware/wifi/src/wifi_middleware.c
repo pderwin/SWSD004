@@ -593,16 +593,24 @@ void wifi_mw_scan_rp_task_done( smtc_modem_rp_status_t* status )
         /* Timestamp this scan */
         wifi_results.timestamp = mw_get_gps_time( );
 
+        printk("%s %d WIFI scan done.  get results (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+
         /* Wi-Fi scan completed, get and display the results */
         scan_results_rc = smtc_wifi_get_results( modem_radio_ctx->ral.context, &wifi_results );
+
+        printk("%s %d scan results rc: %d (from %p) \n", __func__, __LINE__, scan_results_rc, __builtin_return_address(0) );
 
         /* Get scan power consumption */
         smtc_wifi_get_power_consumption( modem_radio_ctx->ral.context, &wifi_results.power_consumption_uah );
 
         if( scan_results_rc == true )
         {
+           printk("%s %d send event WIFI_MW_EVENT_SCAN_DONE (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+
             /* Scan has been completed, send an event to application */
             wifi_mw_send_event( WIFI_MW_EVENT_SCAN_DONE );
+
+            printk("%s %d sending wifi results (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 
             /* Send scan uplink if any, or send event to application */
             if( wifi_mw_send_results( ) == false )
@@ -652,12 +660,17 @@ static bool wifi_mw_send_results( void )
         /* Bypass send */
         return false;
     }
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 
     /* Check if there are results to be sent */
     if( wifi_results.nbr_results < WIFI_SCAN_NB_AP_MIN )
     {
-        return false;
+       printk("%s: not enough APs detected.  No data sent.\n", __func__);
+       return false;
     }
+
+    printk("%s %d (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
+    printk("%s %d building wifi data packet.   (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 
     /* Add the payload format tag */
     wifi_result_buffer[wifi_buffer_size] = payload_format;
@@ -676,6 +689,8 @@ static bool wifi_mw_send_results( void )
         memcpy( &wifi_result_buffer[wifi_buffer_size], wifi_results.results[i].mac_address, WIFI_AP_ADDRESS_SIZE );
         wifi_buffer_size += WIFI_AP_ADDRESS_SIZE;
     }
+
+    printk("%s %d sending wifi buffer. (from %p) \n", __func__, __LINE__, __builtin_return_address(0) );
 
     /* Send buffer */
     if( wifi_mw_send_frame( wifi_result_buffer, wifi_buffer_size ) != true )
@@ -718,11 +733,14 @@ static bool wifi_mw_send_frame( const uint8_t* tx_frame_buffer, const uint8_t tx
 
     /* Get the next tx payload size */
     MW_ASSERT_SMTC_MODEM_RC( smtc_modem_get_next_tx_max_payload( modem_stack_id, &tx_max_payload ) );
+
     if( tx_frame_buffer_size > tx_max_payload )
     {
         MW_DBG_TRACE_ERROR( "payload size: exceed max payload allowed for next uplink (%d > %d bytes)\n",
                             tx_frame_buffer_size, tx_max_payload );
     }
+
+    printk("%s %d SENDING UPLINK TO PORT: %d (from %p) \n", __func__, __LINE__, lorawan_port, __builtin_return_address(0) );
 
     /* Send uplink */
     modem_response_code =

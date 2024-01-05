@@ -39,6 +39,7 @@
 
 #include <stdint.h>   // C99 types
 #include <stdbool.h>  // bool type
+#include <zephyr/drivers/trace.h>
 
 #include "modem_supervisor.h"
 
@@ -314,6 +315,7 @@ eTask_valid_t modem_supervisor_remove_task( task_id_t id )
     if( id < NUMBER_OF_TASKS )
     {
         task_manager.modem_task[id].priority = TASK_FINISH;
+        TRACE1(TAG_MODEM_SUPERVISOR_REMOVE_TASK, id);
         return TASK_VALID;
     }
     SMTC_MODEM_HAL_TRACE_ERROR( "modem_supervisor_remove_task id = %d unknown\n", id );
@@ -322,6 +324,8 @@ eTask_valid_t modem_supervisor_remove_task( task_id_t id )
 
 eTask_valid_t modem_supervisor_add_task( smodem_task* task )
 {
+   TRACE3(TAG_MODEM_SUPERVISOR_ADD_TASK, task->id, task->priority, task->fPort);
+
     // the modem supervisor always accept a new task.
     // in case of a previous task is already enqueue , the new task remove the old one.
     // as soon as a task has been elected by the modem supervisor , the task is managed by the stack itself and a new
@@ -345,6 +349,9 @@ eTask_valid_t modem_supervisor_add_task( smodem_task* task )
 void modem_supervisor_launch_task( task_id_t id )
 {
     status_lorawan_t send_status = ERRORLORAWAN;
+
+    TRACE1(TAG_MODEM_SUPERVISOR_LAUNCH_TASK, id);
+
     switch( id )
     {
     case JOIN_TASK:
@@ -363,6 +370,7 @@ void modem_supervisor_launch_task( task_id_t id )
     case SEND_TASK_EXTENDED_1:
     case SEND_TASK_EXTENDED_2:
     case SEND_TASK: {
+
         send_status = lorawan_api_payload_send(
             task_manager.modem_task[id].fPort, task_manager.modem_task[id].fPort_present,
             task_manager.modem_task[id].dataIn, task_manager.modem_task[id].sizeIn,
@@ -947,11 +955,15 @@ void modem_supervisor_update_task( task_id_t id )
 
 uint32_t modem_supervisor_scheduler( void )
 {
+   TRACE(TAG_MODEM_SUPERVISOR_SCHEDULER);
+
     // Check first if stack state is idle
     if( lorawan_api_state_get( ) != LWPSTATE_IDLE )
     {
         return ( CALL_LR1MAC_PERIOD_MS );
     }
+
+    TRACE1(TAG_MODEM_SUPERVISOR_SCHEDULER_NEXT, task_manager.next_task_id);
 
     if( task_manager.next_task_id != IDLE_TASK )
     {
@@ -978,6 +990,8 @@ uint32_t modem_supervisor_scheduler( void )
             }
         }
     }
+
+    TRACE2(TAG_MODEM_SUPERVISOR_SCHEDULER_PAST, next_task_priority, task_manager.next_task_id);
 
     // No task in the past was found, select the least in the future for wake up
     if( next_task_priority == TASK_FINISH )
@@ -1012,6 +1026,8 @@ uint32_t modem_supervisor_scheduler( void )
 
 uint32_t modem_supervisor_engine( void )
 {
+   TRACE(TAG_MODEM_SUPERVISOR_ENGINE);
+
     // manage reset requested by the host
     if( get_modem_reset_requested( ) == true )
     {
