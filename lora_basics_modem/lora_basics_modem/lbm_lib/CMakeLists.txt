@@ -1,0 +1,6 @@
+add_subdirectory(smtc_modem_core)
+
+zephyr_include_directories(smtc_modem_api)
+zephyr_include_directories(smtc_modem_hal)
+
+zephyr_include_directories(.)
