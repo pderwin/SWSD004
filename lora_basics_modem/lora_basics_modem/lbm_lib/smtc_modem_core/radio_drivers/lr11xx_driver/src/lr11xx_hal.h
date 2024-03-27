@@ -93,7 +93,7 @@ typedef enum lr11xx_hal_status_e
  * @returns Operation status
  */
 lr11xx_hal_status_t lr11xx_hal_write( const void* context, const uint8_t* command, const uint16_t command_length,
-                                      const uint8_t* data, const uint16_t data_length );
+				      const uint8_t* data, const uint16_t data_length );
 
 /*!
  * @brief Radio data transfer - read
@@ -116,7 +116,7 @@ lr11xx_hal_status_t lr11xx_hal_write( const void* context, const uint8_t* comman
  * expects that zeros be sent on the MOSI line when this command is reading the command response data.
  */
 lr11xx_hal_status_t lr11xx_hal_read( const void* context, const uint8_t* command, const uint16_t command_length,
-                                     uint8_t* data, const uint16_t data_length );
+				     uint8_t* data, const uint16_t data_length );
 
 /*!
  * @brief  Direct read from the SPI bus
@@ -180,25 +180,33 @@ inline static uint8_t lr11xx_hal_compute_crc( const uint8_t initial_value, const
 
     for( uint16_t i = 0; i < length; i++ )
     {
-        uint8_t extract = buffer[i];
-        uint8_t sum;
+	uint8_t extract = buffer[i];
+	uint8_t sum;
 
-        for( uint8_t j = 8; j > 0; j-- )
-        {
-            sum = ( crc ^ extract ) & 0x01;
-            crc >>= 1;
+	for( uint8_t j = 8; j > 0; j-- )
+	{
+	    sum = ( crc ^ extract ) & 0x01;
+	    crc >>= 1;
 
-            if( sum != 0 )
-            {
-                crc ^= 0x65;
-            }
+	    if( sum != 0 )
+	    {
+		crc ^= 0x65;
+	    }
 
-            extract >>= 1;
-        }
+	    extract >>= 1;
+	}
     }
 
     return crc;
 }
+
+const void         *lr11xx_hal_get_radio_context     (void);
+uint32_t            lr11xx_hal_read_busy_pin         (const void *context);
+lr11xx_hal_status_t lr11xx_hal_reset_programming_mode( const void* context );
+
+void                lr11xx_hal_timer_init(void);
+void                lr11xx_hal_timer_stop(void);
+   void                lr11xx_hal_timer_start(uint32_t milliseconds, void (*callback)(), void (*context));
 
 #ifdef __cplusplus
 }
