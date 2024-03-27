@@ -71,7 +71,9 @@ extern "C" {
  * \param [IN] b 2nd value
  * \retval maxValue Maximum value
  */
+#ifndef MAX
 #define MAX( a, b ) ( ( ( a ) > ( b ) ) ? ( a ) : ( b ) )
+#endif
 
 /**
  * @brief Math Abs macro
@@ -129,8 +131,8 @@ status_lorawan_t lr1mac_rx_mhdr_extract( uint8_t* rx_payload, uint8_t* rx_ftype,
  *
  */
 int lr1mac_rx_fhdr_extract( uint8_t* rx_payload, uint8_t rx_payload_size, uint8_t* rx_fopts_length,
-                            uint16_t* fcnt_dwn_tmp, uint32_t dev_addr, uint8_t* rx_fport, bool* rx_fport_present,
-                            uint8_t* rx_fctrl, uint8_t* rx_fopts );
+			    uint16_t* fcnt_dwn_tmp, uint32_t dev_addr, uint8_t* rx_fport, bool* rx_fport_present,
+			    uint8_t* rx_fctrl, uint8_t* rx_fopts );
 /*!
  * \brief Extract MHDR
  *
