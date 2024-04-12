@@ -170,35 +170,35 @@ void region_us_915_init( smtc_real_t* real )
 void region_us_915_config( smtc_real_t* real )
 {
     // Tx 125 kHz channels
-    for( uint8_t i = 0; i < NUMBER_OF_TX_CHANNEL_US_915 - 8; i++ )
+   for( uint8_t i = 8 /* 0 */; i < 16 /* NUMBER_OF_TX_CHANNEL_US_915 - 8 */; i++ )
     {
-        SMTC_PUT_BIT8( channel_index_enabled, i, CHANNEL_ENABLED );
+	SMTC_PUT_BIT8( channel_index_enabled, i, CHANNEL_ENABLED );
 
-        // Enable default datarate
-        dr_bitfield_tx_channel[i] = DEFAULT_TX_DR_125_BIT_FIELD_US_915;
+	// Enable default datarate
+	dr_bitfield_tx_channel[i] = DEFAULT_TX_DR_125_BIT_FIELD_US_915;
 
-        SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( "TX - idx:%u, freq: %d, dr: 0x%x,\n%s", i,
-                                           region_us_915_get_tx_frequency_channel( real, i ), dr_bitfield_tx_channel[i],
-                                           ( ( i % 8 ) == 7 ) ? "---\n" : "" );
+	SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( "TX - idx:%u, freq: %d, dr: 0x%x,\n%s", i,
+					   region_us_915_get_tx_frequency_channel( real, i ), dr_bitfield_tx_channel[i],
+					   ( ( i % 8 ) == 7 ) ? "---\n" : "" );
     }
     // Tx 500 kHz channels
     for( uint8_t i = NUMBER_OF_TX_CHANNEL_US_915 - 8; i < NUMBER_OF_TX_CHANNEL_US_915; i++ )
     {
-        SMTC_PUT_BIT8( channel_index_enabled, i, CHANNEL_ENABLED );
-        // Enable default datarate
-        dr_bitfield_tx_channel[i] = DEFAULT_TX_DR_500_BIT_FIELD_US_915;
+	SMTC_PUT_BIT8( channel_index_enabled, i, CHANNEL_ENABLED );
+	// Enable default datarate
+	dr_bitfield_tx_channel[i] = DEFAULT_TX_DR_500_BIT_FIELD_US_915;
 
-        SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( "TX - idx:%u, freq: %d, dr: 0x%x,\n%s", i,
-                                           region_us_915_get_tx_frequency_channel( real, i ), dr_bitfield_tx_channel[i],
-                                           ( ( i % 8 ) == 7 ) ? "---\n" : "" );
+	SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( "TX - idx:%u, freq: %d, dr: 0x%x,\n%s", i,
+					   region_us_915_get_tx_frequency_channel( real, i ), dr_bitfield_tx_channel[i],
+					   ( ( i % 8 ) == 7 ) ? "---\n" : "" );
     }
 #if MODEM_HAL_DBG_TRACE == MODEM_HAL_FEATURE_ON
     // Rx 500 kHz channels
     for( uint8_t i = 0; i < NUMBER_OF_RX_CHANNEL_US_915; i++ )
     {
-        SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( "RX - idx:%u, freq: %d, dr_min: %u, dr_max: %u\n%s", i,
-                                           region_us_915_get_rx1_frequency_channel( real, i ), MIN_RX_DR_US_915,
-                                           MAX_RX_DR_US_915, ( ( i % 8 ) == 7 ) ? "---\n" : "" );
+	SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( "RX - idx:%u, freq: %d, dr_min: %u, dr_max: %u\n%s", i,
+					   region_us_915_get_rx1_frequency_channel( real, i ), MIN_RX_DR_US_915,
+					   MAX_RX_DR_US_915, ( ( i % 8 ) == 7 ) ? "---\n" : "" );
     }
 #endif
 
@@ -215,112 +215,112 @@ status_lorawan_t region_us_915_is_acceptable_tx_dr( smtc_real_t* real, uint8_t d
     // 125 kHz channels
     for( uint8_t i = 0; i < real_const.const_number_of_tx_channel - 8; i++ )
     {
-        if( SMTC_GET_BIT8( ch_mask_to_check, i ) == CHANNEL_ENABLED )
-        {
-            if( SMTC_GET_BIT16( &dr_bitfield_tx_channel[i], dr ) == 1 )
-            {
-                status = OKLORAWAN;
-                number_channels_125_enabled++;
-            }
-        }
+	if( SMTC_GET_BIT8( ch_mask_to_check, i ) == CHANNEL_ENABLED )
+	{
+	    if( SMTC_GET_BIT16( &dr_bitfield_tx_channel[i], dr ) == 1 )
+	    {
+		status = OKLORAWAN;
+		number_channels_125_enabled++;
+	    }
+	}
     }
     // 500 kHz channels
     for( uint8_t i = NUMBER_OF_TX_CHANNEL_US_915 - 8; i < NUMBER_OF_TX_CHANNEL_US_915; i++ )
     {
-        if( SMTC_GET_BIT8( ch_mask_to_check, i ) == CHANNEL_ENABLED )
-        {
-            if( SMTC_GET_BIT16( &dr_bitfield_tx_channel[i], dr ) == 1 )
-            {
-                status = OKLORAWAN;
-                break;
-            }
-        }
+	if( SMTC_GET_BIT8( ch_mask_to_check, i ) == CHANNEL_ENABLED )
+	{
+	    if( SMTC_GET_BIT16( &dr_bitfield_tx_channel[i], dr ) == 1 )
+	    {
+		status = OKLORAWAN;
+		break;
+	    }
+	}
     }
 
     if( dr < MAX_TX_DR_LORA_US_915 )
     {
-        // FCC 15.247 paragraph F mandates to hop on at least 2 125 kHz channels
-        if( number_channels_125_enabled < 2 )
-        {
-            status = ERRORLORAWAN;
-        }
+	// FCC 15.247 paragraph F mandates to hop on at least 2 125 kHz channels
+	if( number_channels_125_enabled < 2 )
+	{
+	    status = ERRORLORAWAN;
+	}
     }
 
     if( status == ERRORLORAWAN )
     {
-        SMTC_MODEM_HAL_TRACE_WARNING( "Not acceptable data rate\n" );
+	SMTC_MODEM_HAL_TRACE_WARNING( "Not acceptable data rate\n" );
     }
     return ( status );
 }
 
 status_lorawan_t region_us_915_get_join_next_channel( smtc_real_t* real, uint8_t* out_tx_data_rate,
-                                                      uint32_t* out_tx_frequency, uint32_t* out_rx1_frequency,
-                                                      uint8_t* active_channel_nb )
+						      uint32_t* out_tx_frequency, uint32_t* out_rx1_frequency,
+						      uint8_t* active_channel_nb )
 {
     us_915_channels_bank_t bank_tmp_cnt = 0;
     uint8_t                active_channel_index[NUMBER_OF_TX_CHANNEL_US_915];
     do
     {
-        if( snapshot_bank_tx_mask > BANK_8_500_US915 )
-        {
-            snapshot_bank_tx_mask = BANK_0_125_US915;
-        }
+	if( snapshot_bank_tx_mask > BANK_8_500_US915 )
+	{
+	    snapshot_bank_tx_mask = BANK_0_125_US915;
+	}
 
-        // if all channels were used in a block, reset the snapshots block
-        if( snapshot_channel_tx_mask[snapshot_bank_tx_mask] == 0 )
-        {
-            snapshot_channel_tx_mask[snapshot_bank_tx_mask] = channel_index_enabled[snapshot_bank_tx_mask];
-        }
+	// if all channels were used in a block, reset the snapshots block
+	if( snapshot_channel_tx_mask[snapshot_bank_tx_mask] == 0 )
+	{
+	    snapshot_channel_tx_mask[snapshot_bank_tx_mask] = channel_index_enabled[snapshot_bank_tx_mask];
+	}
 
-        *active_channel_nb = 0;
-        for( uint8_t i = snapshot_bank_tx_mask * 8; i < ( ( snapshot_bank_tx_mask * 8 ) + 8 ); i++ )
-        {
-            if( ( SMTC_GET_BIT8( snapshot_channel_tx_mask, i ) == CHANNEL_ENABLED ) &&
-                ( SMTC_GET_BIT8( channel_index_enabled, i ) == CHANNEL_ENABLED ) )
-            {
-                active_channel_index[*active_channel_nb] = i;
-                ( *active_channel_nb )++;
-            }
-        }
-        snapshot_bank_tx_mask++;
-        bank_tmp_cnt++;
+	*active_channel_nb = 0;
+	for( uint8_t i = snapshot_bank_tx_mask * 8; i < ( ( snapshot_bank_tx_mask * 8 ) + 8 ); i++ )
+	{
+	    if( ( SMTC_GET_BIT8( snapshot_channel_tx_mask, i ) == CHANNEL_ENABLED ) &&
+		( SMTC_GET_BIT8( channel_index_enabled, i ) == CHANNEL_ENABLED ) )
+	    {
+		active_channel_index[*active_channel_nb] = i;
+		( *active_channel_nb )++;
+	    }
+	}
+	snapshot_bank_tx_mask++;
+	bank_tmp_cnt++;
     } while( ( *active_channel_nb == 0 ) && ( bank_tmp_cnt < BANK_MAX_US915 ) );
 
     if( *active_channel_nb == 0 )
     {
-        SMTC_MODEM_HAL_TRACE_WARNING( "NO CHANNELS AVAILABLE \n" );
-        return ERRORLORAWAN;
+	SMTC_MODEM_HAL_TRACE_WARNING( "NO CHANNELS AVAILABLE \n" );
+	return ERRORLORAWAN;
     }
 
     uint8_t temp        = 0xFF;
     uint8_t channel_idx = 0;
     if( snapshot_bank_tx_mask > BANK_8_500_US915 )
     {
-        // active_channel_index[0] contains the first available 500KHz channel
-        channel_idx = active_channel_index[0];
+	// active_channel_index[0] contains the first available 500KHz channel
+	channel_idx = active_channel_index[0];
     }
     else
     {
-        temp        = ( smtc_modem_hal_get_random_nb_in_range( 0, ( *active_channel_nb - 1 ) ) ) % *active_channel_nb;
-        channel_idx = active_channel_index[temp];
+	temp        = ( smtc_modem_hal_get_random_nb_in_range( 0, ( *active_channel_nb - 1 ) ) ) % *active_channel_nb;
+	channel_idx = active_channel_index[temp];
     }
 
     if( channel_idx >= NUMBER_OF_TX_CHANNEL_US_915 )
     {
-        SMTC_MODEM_HAL_TRACE_ERROR( "INVALID CHANNEL  active channel = %d and random channel = %d \n",
-                                    *active_channel_nb, temp );
-        return ERRORLORAWAN;
+	SMTC_MODEM_HAL_TRACE_ERROR( "INVALID CHANNEL  active channel = %d and random channel = %d \n",
+				    *active_channel_nb, temp );
+	return ERRORLORAWAN;
     }
 
     tx_channel_idx = channel_idx;
 
     if( snapshot_bank_tx_mask > BANK_8_500_US915 )
     {
-        *out_tx_data_rate = DR4;
+	*out_tx_data_rate = DR4;
     }
     else
     {
-        *out_tx_data_rate = DR0;
+	*out_tx_data_rate = DR0;
     }
 
     *out_tx_frequency  = region_us_915_get_tx_frequency_channel( real, channel_idx );
@@ -330,17 +330,17 @@ status_lorawan_t region_us_915_get_join_next_channel( smtc_real_t* real, uint8_t
     SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( "snapshot channel 125 tx mask\n" );
     for( uint8_t i = 0; i < NUMBER_OF_TX_CHANNEL_US_915 - 8; i++ )
     {
-        SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG(
-            "%u%s", SMTC_GET_BIT8( snapshot_channel_tx_mask, i ) & SMTC_GET_BIT8( channel_index_enabled, i ),
-            ( ( i % 8 ) == 7 ) ? " \n" : "" );
+	SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG(
+	    "%u%s", SMTC_GET_BIT8( snapshot_channel_tx_mask, i ) & SMTC_GET_BIT8( channel_index_enabled, i ),
+	    ( ( i % 8 ) == 7 ) ? " \n" : "" );
     }
     SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( "snapshot channel 500 tx mask\n" );
     for( uint8_t i = 0; i < 8; i++ )
     {
-        SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( "%u%s",
-                                           SMTC_GET_BIT8( &snapshot_channel_tx_mask[BANK_8_500_US915], i ) &
-                                               SMTC_GET_BIT8( &channel_index_enabled[BANK_8_500_US915], i ),
-                                           ( ( i % 8 ) == 7 ) ? " \n" : "" );
+	SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( "%u%s",
+					   SMTC_GET_BIT8( &snapshot_channel_tx_mask[BANK_8_500_US915], i ) &
+					       SMTC_GET_BIT8( &channel_index_enabled[BANK_8_500_US915], i ),
+					   ( ( i % 8 ) == 7 ) ? " \n" : "" );
     }
 #endif
 
@@ -348,41 +348,41 @@ status_lorawan_t region_us_915_get_join_next_channel( smtc_real_t* real, uint8_t
 }
 
 status_lorawan_t region_us_915_get_next_channel( smtc_real_t* real, uint8_t tx_data_rate, uint32_t* out_tx_frequency,
-                                                 uint32_t* out_rx1_frequency, uint8_t* active_channel_nb )
+						 uint32_t* out_rx1_frequency, uint8_t* active_channel_nb )
 {
     // if all channels were used -> reset the 500Kz snapshots
     if( ( SMTC_ARE_CLR_BYTE8( snapshot_channel_tx_mask, BANK_8_500_US915 ) == true ) &&
-        ( first_ch_mask_received == ch_mask_after_join_full ) )
+	( first_ch_mask_received == ch_mask_after_join_full ) )
     {
-        for( us_915_channels_bank_t i = 0; i < BANK_8_500_US915; i++ )
-        {
-            snapshot_channel_tx_mask[i] = channel_index_enabled[i];
-        }
+	for( us_915_channels_bank_t i = 0; i < BANK_8_500_US915; i++ )
+	{
+	    snapshot_channel_tx_mask[i] = channel_index_enabled[i];
+	}
     }
 
     // If all 500Khz channels were used AND were are in nominal way -> reset the 500Kz snapshot
     if( ( snapshot_channel_tx_mask[BANK_8_500_US915] == 0 ) && ( first_ch_mask_received == ch_mask_after_join_full ) )
     {
-        snapshot_channel_tx_mask[BANK_8_500_US915] = channel_index_enabled[BANK_8_500_US915];
+	snapshot_channel_tx_mask[BANK_8_500_US915] = channel_index_enabled[BANK_8_500_US915];
     }
 
     // If (all 125KHz channels OR all 500Khz channels) were used in 56 channels phases without received a ChMash
     // --> enable all 64 channels
     if( ( ( SMTC_ARE_CLR_BYTE8( snapshot_channel_tx_mask, BANK_8_500_US915 ) == true ) ||
-          ( snapshot_channel_tx_mask[BANK_8_500_US915] == 0 ) ) &&
-        ( first_ch_mask_received == ch_mask_after_join_56ch ) )
+	  ( snapshot_channel_tx_mask[BANK_8_500_US915] == 0 ) ) &&
+	( first_ch_mask_received == ch_mask_after_join_56ch ) )
     {
-        memset( unwrapped_channel_mask, 0xFF, real_const.const_number_of_channel_bank );
-        region_us_915_set_channel_mask( real );
+	memset( unwrapped_channel_mask, 0xFF, real_const.const_number_of_channel_bank );
+	region_us_915_set_channel_mask( real );
     }
 
     // If (all 125KHz channels OR all 500Khz channels) were used in 8 channels phases without received a ChMash
     // --> enable all others 56 channels and disable the 8 channels used
     if( ( ( SMTC_ARE_CLR_BYTE8( snapshot_channel_tx_mask, BANK_8_500_US915 ) == true ) ||
-          ( snapshot_channel_tx_mask[BANK_8_500_US915] == 0 ) ) &&
-        ( first_ch_mask_received <= ch_mask_after_join_8ch ) )
+	  ( snapshot_channel_tx_mask[BANK_8_500_US915] == 0 ) ) &&
+	( first_ch_mask_received <= ch_mask_after_join_8ch ) )
     {
-        region_us_915_init_after_join_snapshot_channel_mask( real, tx_data_rate, *out_tx_frequency );
+	region_us_915_init_after_join_snapshot_channel_mask( real, tx_data_rate, *out_tx_frequency );
     }
 
     // Seach all active channels and put in array to be randomly select
@@ -390,17 +390,17 @@ status_lorawan_t region_us_915_get_next_channel( smtc_real_t* real, uint8_t tx_d
     uint8_t active_channel_index[NUMBER_OF_TX_CHANNEL_US_915];
     for( uint8_t i = 0; i < NUMBER_OF_TX_CHANNEL_US_915; i++ )
     {
-        if( ( SMTC_GET_BIT8( snapshot_channel_tx_mask, i ) == CHANNEL_ENABLED ) &&
-            ( SMTC_GET_BIT8( channel_index_enabled, i ) == CHANNEL_ENABLED ) &&
-            ( SMTC_GET_BIT16( &dr_bitfield_tx_channel[i], tx_data_rate ) == 1 ) )
-        {
-            active_channel_index[*active_channel_nb] = i;
-            ( *active_channel_nb )++;
-        }
+	if( ( SMTC_GET_BIT8( snapshot_channel_tx_mask, i ) == CHANNEL_ENABLED ) &&
+	    ( SMTC_GET_BIT8( channel_index_enabled, i ) == CHANNEL_ENABLED ) &&
+	    ( SMTC_GET_BIT16( &dr_bitfield_tx_channel[i], tx_data_rate ) == 1 ) )
+	{
+	    active_channel_index[*active_channel_nb] = i;
+	    ( *active_channel_nb )++;
+	}
     }
     if( *active_channel_nb == 0 )
     {
-        SMTC_MODEM_HAL_PANIC( "NO CHANNELS AVAILABLE\n" );
+	SMTC_MODEM_HAL_PANIC( "NO CHANNELS AVAILABLE\n" );
     }
 
     // Select a channel in array
@@ -408,9 +408,9 @@ status_lorawan_t region_us_915_get_next_channel( smtc_real_t* real, uint8_t tx_d
     uint8_t channel_idx = active_channel_index[temp];
     if( channel_idx >= NUMBER_OF_TX_CHANNEL_US_915 )
     {
-        SMTC_MODEM_HAL_TRACE_ERROR( "INVALID CHANNEL  active channel = %d and random channel = %d \n",
-                                    *active_channel_nb, temp );
-        return ERRORLORAWAN;
+	SMTC_MODEM_HAL_TRACE_ERROR( "INVALID CHANNEL  active channel = %d and random channel = %d \n",
+				    *active_channel_nb, temp );
+	return ERRORLORAWAN;
     }
 
     tx_channel_idx = channel_idx;
@@ -422,14 +422,14 @@ status_lorawan_t region_us_915_get_next_channel( smtc_real_t* real, uint8_t tx_d
     SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( "snapshot channel 125 tx mask\n" );
     for( uint8_t i = 0; i < NUMBER_OF_TX_CHANNEL_US_915 - 8; i++ )
     {
-        SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( "%u%s", SMTC_GET_BIT8( snapshot_channel_tx_mask, i ),
-                                           ( ( i % 8 ) == 7 ) ? " \n" : "" );
+	SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( "%u%s", SMTC_GET_BIT8( snapshot_channel_tx_mask, i ),
+					   ( ( i % 8 ) == 7 ) ? " \n" : "" );
     }
     SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( "snapshot channel 500 tx mask\n" );
     for( uint8_t i = 0; i < 8; i++ )
     {
-        SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( "%u%s", SMTC_GET_BIT8( &snapshot_channel_tx_mask[BANK_8_500_US915], i ),
-                                           ( ( i % 8 ) == 7 ) ? " \n" : "" );
+	SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( "%u%s", SMTC_GET_BIT8( &snapshot_channel_tx_mask[BANK_8_500_US915], i ),
+					   ( ( i % 8 ) == 7 ) ? " \n" : "" );
     }
 #endif
 
@@ -454,13 +454,13 @@ void region_us_915_init_join_snapshot_channel_mask( smtc_real_t* real )
 }
 
 void region_us_915_init_after_join_snapshot_channel_mask( smtc_real_t* real, uint8_t tx_data_rate,
-                                                          uint32_t tx_frequency )
+							  uint32_t tx_frequency )
 {
     us_915_channels_bank_t ch_mask_block = 0;
 
     for( us_915_channels_bank_t i = 0; i < BANK_MAX_US915; i++ )
     {
-        unwrapped_channel_mask[i] = 0x00;
+	unwrapped_channel_mask[i] = 0x00;
     }
 
     uint8_t            tx_sf = 7;
@@ -480,52 +480,52 @@ void region_us_915_init_after_join_snapshot_channel_mask( smtc_real_t* real, uin
      */
     if( tx_bw == BW125 )
     {
-        // Search the corresponding block of channels used by the last Tx frequency
-        ch_mask_block = ( us_915_channels_bank_t ) ( ( tx_frequency - DEFAULT_TX_FREQ_125_START_US_915 ) /
-                                                     ( DEFAULT_TX_STEP_125_US_915
-                                                       << 3 ) );  // 1600000 = 8 ch * 200000 MHz, the gap in each block
+	// Search the corresponding block of channels used by the last Tx frequency
+	ch_mask_block = ( us_915_channels_bank_t ) ( ( tx_frequency - DEFAULT_TX_FREQ_125_START_US_915 ) /
+						     ( DEFAULT_TX_STEP_125_US_915
+						       << 3 ) );  // 1600000 = 8 ch * 200000 MHz, the gap in each block
     }
     else if( tx_bw == BW500 )
     {
-        // Search the corresponding channel used by the last Tx frequency in block of 500Khz channels
-        ch_mask_block = ( us_915_channels_bank_t ) ( ( ( tx_frequency - DEFAULT_TX_FREQ_500_START_US_915 ) /
-                                                       DEFAULT_TX_STEP_500_US_915 ) %
-                                                     8 );
+	// Search the corresponding channel used by the last Tx frequency in block of 500Khz channels
+	ch_mask_block = ( us_915_channels_bank_t ) ( ( ( tx_frequency - DEFAULT_TX_FREQ_500_START_US_915 ) /
+						       DEFAULT_TX_STEP_500_US_915 ) %
+						     8 );
     }
     else
     {
-        SMTC_MODEM_HAL_PANIC( "invalid BW %d", tx_bw );
+	SMTC_MODEM_HAL_PANIC( "invalid BW %d", tx_bw );
     }
 
     // Block are defined from 0 to 8
     if( ch_mask_block >= BANK_MAX_US915 )
     {
-        SMTC_MODEM_HAL_PANIC( "frequency block out of range %d\n", ch_mask_block );
+	SMTC_MODEM_HAL_PANIC( "frequency block out of range %d\n", ch_mask_block );
     }
 
     if( first_ch_mask_received == ch_mask_after_join_init )
     {
-        // 125 kHz channels, init the right block only
-        unwrapped_channel_mask[ch_mask_block] = 0xFF;  // In case of BW500, read the remark above
+	// 125 kHz channels, init the right block only
+	unwrapped_channel_mask[ch_mask_block] = 0xFF;  // In case of BW500, read the remark above
 
-        // 500 kHz channels, init the corresponding 500kHz frequency to this block
-        SMTC_PUT_BIT8( &unwrapped_channel_mask[BANK_8_500_US915], ch_mask_block, CHANNEL_ENABLED );
+	// 500 kHz channels, init the corresponding 500kHz frequency to this block
+	SMTC_PUT_BIT8( &unwrapped_channel_mask[BANK_8_500_US915], ch_mask_block, CHANNEL_ENABLED );
     }
     else if( first_ch_mask_received == ch_mask_after_join_8ch )
     {
-        // 125 kHz channels, init all blocks, except the previously set
-        for( us_915_channels_bank_t i = 0; i < BANK_8_500_US915; i++ )
-        {
-            unwrapped_channel_mask[i] = 0xFF;
-        }
-        unwrapped_channel_mask[ch_mask_block] = 0x00;  // In case of BW500, read the remark above
+	// 125 kHz channels, init all blocks, except the previously set
+	for( us_915_channels_bank_t i = 0; i < BANK_8_500_US915; i++ )
+	{
+	    unwrapped_channel_mask[i] = 0xFF;
+	}
+	unwrapped_channel_mask[ch_mask_block] = 0x00;  // In case of BW500, read the remark above
 
-        // 500 kHz channels, init all 500kHz channels, except the previously set
-        unwrapped_channel_mask[BANK_8_500_US915] = ( 0xFF & ~( 1 << ch_mask_block ) );
+	// 500 kHz channels, init all 500kHz channels, except the previously set
+	unwrapped_channel_mask[BANK_8_500_US915] = ( 0xFF & ~( 1 << ch_mask_block ) );
     }
     else
     {
-        SMTC_MODEM_HAL_PANIC( "bad sate\n" );
+	SMTC_MODEM_HAL_PANIC( "bad sate\n" );
     }
 
     // Apply computed channel mask after join
@@ -543,77 +543,77 @@ status_channel_t region_us_915_build_channel_mask( smtc_real_t* real, uint8_t ch
     case 1:
     case 2:
     case 3:
-        memcpy( unwrapped_channel_mask + ( channel_mask_cntl * 2 ), ( uint8_t* ) &channel_mask, 2 );
-        break;
+	memcpy( unwrapped_channel_mask + ( channel_mask_cntl * 2 ), ( uint8_t* ) &channel_mask, 2 );
+	break;
     // 500 KHz channels
     case 4:
-        memcpy( &unwrapped_channel_mask[BANK_8_500_US915], ( uint8_t* ) &channel_mask, 1 );
-        break;
+	memcpy( &unwrapped_channel_mask[BANK_8_500_US915], ( uint8_t* ) &channel_mask, 1 );
+	break;
     // bank of channels
     case 5:
-        // Run over each bank
-        for( uint8_t i = 0; i < BANK_8_500_US915; i++ )
-        {
-            if( ( ( channel_mask >> i ) & 0x01 ) == CHANNEL_ENABLED )
-            {
-                unwrapped_channel_mask[i] = 0xFF;
-                SMTC_PUT_BIT8( &unwrapped_channel_mask[BANK_8_500_US915], i, CHANNEL_ENABLED );
-            }
-            else
-            {
-                unwrapped_channel_mask[i] = 0x00;
-                SMTC_PUT_BIT8( &unwrapped_channel_mask[BANK_8_500_US915], i, CHANNEL_DISABLED );
-            }
-        }
+	// Run over each bank
+	for( uint8_t i = 0; i < BANK_8_500_US915; i++ )
+	{
+	    if( ( ( channel_mask >> i ) & 0x01 ) == CHANNEL_ENABLED )
+	    {
+		unwrapped_channel_mask[i] = 0xFF;
+		SMTC_PUT_BIT8( &unwrapped_channel_mask[BANK_8_500_US915], i, CHANNEL_ENABLED );
+	    }
+	    else
+	    {
+		unwrapped_channel_mask[i] = 0x00;
+		SMTC_PUT_BIT8( &unwrapped_channel_mask[BANK_8_500_US915], i, CHANNEL_DISABLED );
+	    }
+	}
 
-        break;
+	break;
     // All 125 kHz ON ChMask applies to channels 64 to 71
     case 6:
-        // Enable all 125KHz channels
-        memset( unwrapped_channel_mask, 0xFF, BANK_8_500_US915 );
+	// Enable all 125KHz channels
+	memset( unwrapped_channel_mask, 0xFF, BANK_8_500_US915 );
 
-        // Enable 500KHz channels
-        memcpy( &unwrapped_channel_mask[BANK_8_500_US915], ( uint8_t* ) &channel_mask, 1 );
-        break;
+	// Enable 500KHz channels
+	memcpy( &unwrapped_channel_mask[BANK_8_500_US915], ( uint8_t* ) &channel_mask, 1 );
+	break;
     // All 125 kHz OFF ChMask applies to channels 64 to 71
     case 7:
-        // Disable all 125KHz channels
-        memset( unwrapped_channel_mask, 0x00, BANK_8_500_US915 );
+	// Disable all 125KHz channels
+	memset( unwrapped_channel_mask, 0x00, BANK_8_500_US915 );
 
-        // Enable 500KHz channels
-        memcpy( &unwrapped_channel_mask[BANK_8_500_US915], ( uint8_t* ) &channel_mask, 1 );
-        break;
+	// Enable 500KHz channels
+	memcpy( &unwrapped_channel_mask[BANK_8_500_US915], ( uint8_t* ) &channel_mask, 1 );
+	break;
     default:
-        status = ERROR_CHANNEL_CNTL;
-        break;
+	status = ERROR_CHANNEL_CNTL;
+	break;
     }
 
     // Check if all enabled channels has a valid frequency
     for( uint8_t i = 0; i < real_const.const_number_of_tx_channel; i++ )
     {
-        if( ( SMTC_GET_BIT8( unwrapped_channel_mask, i ) == CHANNEL_ENABLED ) &&
-            ( region_us_915_get_tx_frequency_channel( real, i ) == 0 ) )
-        {
-            status = ERROR_CHANNEL_MASK;  // this status is used only for the last multiple link adr req
-            break;                        // break for loop
-        }
+	if( ( SMTC_GET_BIT8( unwrapped_channel_mask, i ) == CHANNEL_ENABLED ) &&
+	    ( region_us_915_get_tx_frequency_channel( real, i ) == 0 ) )
+	{
+	    status = ERROR_CHANNEL_MASK;  // this status is used only for the last multiple link adr req
+	    break;                        // break for loop
+	}
     }
 
 #if( MODEM_HAL_DBG_TRACE == MODEM_HAL_FEATURE_ON )
     SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( "unwrapped channel 125 tx mask = 0x" );
     for( uint8_t i = BANK_0_125_US915; i < BANK_8_500_US915; i++ )
     {
-        SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( "%02x ", unwrapped_channel_mask[i] );
+	SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( "%02x ", unwrapped_channel_mask[i] );
     }
     SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( " \n" );
     SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( "unwrapped channel 500 tx mask = 0x%02x\n",
-                                       unwrapped_channel_mask[BANK_8_500_US915] );
+				       unwrapped_channel_mask[BANK_8_500_US915] );
 #endif
 
     // check if all channels are disabled, return ERROR_CHANNEL_MASK
     if( SMTC_ARE_CLR_BYTE8( unwrapped_channel_mask, BANK_MAX_US915 ) == true )
     {
-        status = ERROR_CHANNEL_MASK;
+	status = ERROR_CHANNEL_MASK;
     }
 
     return ( status );
@@ -624,14 +624,14 @@ void region_us_915_enable_all_channels_with_valid_freq( smtc_real_t* real )
     // Tx 125 kHz channels
     for( uint8_t i = 0; i < NUMBER_OF_TX_CHANNEL_US_915 - 8; i++ )
     {
-        SMTC_PUT_BIT8( channel_index_enabled, i, CHANNEL_ENABLED );
-        dr_bitfield_tx_channel[i] = DEFAULT_TX_DR_125_BIT_FIELD_US_915;
+	SMTC_PUT_BIT8( channel_index_enabled, i, CHANNEL_ENABLED );
+	dr_bitfield_tx_channel[i] = DEFAULT_TX_DR_125_BIT_FIELD_US_915;
     }
     // Tx 500 kHz channels
     for( uint8_t i = NUMBER_OF_TX_CHANNEL_US_915 - 8; i < NUMBER_OF_TX_CHANNEL_US_915; i++ )
     {
-        SMTC_PUT_BIT8( channel_index_enabled, i, CHANNEL_ENABLED );
-        dr_bitfield_tx_channel[i] = DEFAULT_TX_DR_500_BIT_FIELD_US_915;
+	SMTC_PUT_BIT8( channel_index_enabled, i, CHANNEL_ENABLED );
+	dr_bitfield_tx_channel[i] = DEFAULT_TX_DR_500_BIT_FIELD_US_915;
     }
 }
 
@@ -639,15 +639,15 @@ modulation_type_t region_us_915_get_modulation_type_from_datarate( uint8_t datar
 {
     if( ( datarate <= DR4 ) || ( ( datarate >= DR8 ) && ( datarate <= DR13 ) ) )
     {
-        return LORA;
+	return LORA;
     }
     else if( ( datarate == DR5 ) || ( datarate == DR6 ) )
     {
-        return LR_FHSS;
+	return LR_FHSS;
     }
     else
     {
-        SMTC_MODEM_HAL_PANIC( );
+	SMTC_MODEM_HAL_PANIC( );
     }
     return LORA;  // never reach
 }
@@ -656,12 +656,12 @@ void region_us_915_lora_dr_to_sf_bw( uint8_t in_dr, uint8_t* out_sf, lr1mac_band
 {
     if( ( in_dr <= DR4 ) || ( ( in_dr >= DR8 ) && ( in_dr <= DR13 ) ) )
     {
-        *out_sf = datarates_to_sf_us_915[in_dr];
-        *out_bw = datarates_to_bandwidths_us_915[in_dr];
+	*out_sf = datarates_to_sf_us_915[in_dr];
+	*out_bw = datarates_to_bandwidths_us_915[in_dr];
     }
     else
     {
-        SMTC_MODEM_HAL_PANIC( );
+	SMTC_MODEM_HAL_PANIC( );
     }
 }
 
@@ -669,12 +669,12 @@ void region_us_915_lr_fhss_dr_to_cr_bw( uint8_t in_dr, lr_fhss_v1_cr_t* out_cr, 
 {
     if( ( in_dr == DR5 ) || ( in_dr == DR6 ) )
     {
-        *out_cr = datarates_to_lr_fhss_cr_us_915[in_dr];
-        *out_bw = LR_FHSS_V1_BW_1523438_HZ;
+	*out_cr = datarates_to_lr_fhss_cr_us_915[in_dr];
+	*out_bw = LR_FHSS_V1_BW_1523438_HZ;
     }
     else
     {
-        SMTC_MODEM_HAL_PANIC( );
+	SMTC_MODEM_HAL_PANIC( );
     }
 }
 
@@ -684,12 +684,12 @@ uint32_t region_us_915_get_tx_frequency_channel( smtc_real_t* real, uint8_t inde
     // 500KHz channels
     if( index >= real_const.const_number_of_tx_channel - 8 )
     {
-        freq = DEFAULT_TX_FREQ_500_START_US_915 + ( ( index % 8 ) * DEFAULT_TX_STEP_500_US_915 );
+	freq = DEFAULT_TX_FREQ_500_START_US_915 + ( ( index % 8 ) * DEFAULT_TX_STEP_500_US_915 );
     }
     // 125KHz channels
     else
     {
-        freq = DEFAULT_TX_FREQ_125_START_US_915 + ( index * DEFAULT_TX_STEP_125_US_915 );
+	freq = DEFAULT_TX_FREQ_125_START_US_915 + ( index * DEFAULT_TX_STEP_125_US_915 );
     }
     return freq;
 }
@@ -697,7 +697,7 @@ uint32_t region_us_915_get_tx_frequency_channel( smtc_real_t* real, uint8_t inde
 uint32_t region_us_915_get_rx1_frequency_channel( smtc_real_t* real, uint8_t index )
 {
     return ( DEFAULT_RX_FREQ_500_START_US_915 +
-             ( ( index % NUMBER_OF_RX_CHANNEL_US_915 ) * DEFAULT_RX_STEP_500_US_915 ) );
+	     ( ( index % NUMBER_OF_RX_CHANNEL_US_915 ) * DEFAULT_RX_STEP_500_US_915 ) );
 }
 
 uint32_t region_us_915_get_rx_beacon_frequency_channel( smtc_real_t* real, uint32_t gps_time_s )
@@ -727,13 +727,13 @@ static void region_us_915_channel_mask_set_after_join( smtc_real_t* real )
     SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( "Ch 125kHz\n" );
     for( uint8_t i = 0; i < NUMBER_OF_TX_CHANNEL_US_915 - 8; i++ )
     {
-        SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( " %d ", SMTC_GET_BIT8( channel_index_enabled, i ) );
+	SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( " %d ", SMTC_GET_BIT8( channel_index_enabled, i ) );
     }
     SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( " \n" );
     SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( "Ch 500kHz\n" );
     for( uint8_t i = NUMBER_OF_TX_CHANNEL_US_915 - 8; i < NUMBER_OF_TX_CHANNEL_US_915; i++ )
     {
-        SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( " %d ", SMTC_GET_BIT8( channel_index_enabled, i ) );
+	SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( " %d ", SMTC_GET_BIT8( channel_index_enabled, i ) );
     }
     SMTC_MODEM_HAL_TRACE_PRINTF_DEBUG( " \n" );
 #endif
