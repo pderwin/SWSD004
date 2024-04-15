@@ -83,7 +83,7 @@ void geolocation_bsp_gnss_prescan_actions ( void )
  *-------------------------------------------------------------------------*/
 lr11xx_system_lfclk_cfg_t geolocation_bsp_get_lr11xx_lf_clock_cfg ( void )
 {
-   return LR11XX_SYSTEM_LFCLK_EXT;
+   return LR11XX_SYSTEM_LFCLK_XTAL;
 }
 
 /*-------------------------------------------------------------------------
