@@ -36,7 +36,7 @@
  * -----------------------------------------------------------------------------
  * --- DEPENDENCIES ------------------------------------------------------------
  */
-
+#include <zephyr/kernel.h>
 #include <stdint.h>   // C99 types
 #include <stdbool.h>  // bool type
 #include <math.h>
@@ -69,7 +69,7 @@
 #define IS_VALID_OBJECT_ID( x )                                                \
     do                                                                         \
     {                                                                          \
-        SMTC_MODEM_HAL_PANIC_ON_FAILURE( x < NUMBER_MAX_OF_MW_WIFI_TASK_OBJ ); \
+	SMTC_MODEM_HAL_PANIC_ON_FAILURE( x < NUMBER_MAX_OF_MW_WIFI_TASK_OBJ ); \
     } while( 0 )
 
 /**
@@ -78,17 +78,17 @@
 #define IS_VALID_STACK_ID( x )                                   \
     do                                                           \
     {                                                            \
-        SMTC_MODEM_HAL_PANIC_ON_FAILURE( x < NUMBER_OF_STACKS ); \
+	SMTC_MODEM_HAL_PANIC_ON_FAILURE( x < NUMBER_OF_STACKS ); \
     } while( 0 )
 
 #define IS_SERVICE_INITIALIZED( )                                           \
     do                                                                      \
     {                                                                       \
-        if( mw_wifi_task_obj.initialized == false )                         \
-        {                                                                   \
-            SMTC_MODEM_HAL_TRACE_WARNING( "Wi-Fi service not launched\n" ); \
-            break;                                                          \
-        }                                                                   \
+	if( mw_wifi_task_obj.initialized == false )                         \
+	{                                                                   \
+	    SMTC_MODEM_HAL_TRACE_WARNING( "Wi-Fi service not launched\n" ); \
+	    break;                                                          \
+	}                                                                   \
     } while( 0 )
 
 /**
@@ -149,10 +149,10 @@ static wifi_scan_all_result_t wifi_results;
  * @brief WiFi scan settings
  */
 wifi_settings_t wifi_settings = { .channels            = 0x3FFF, /* all channels enabled */
-                                  .types               = LR11XX_WIFI_TYPE_SCAN_B_G_N,
-                                  .max_results         = WIFI_MAX_RESULTS,
-                                  .timeout_per_channel = WIFI_TIMEOUT_PER_CHANNEL_DEFAULT,
-                                  .timeout_per_scan    = WIFI_TIMEOUT_PER_SCAN_DEFAULT };
+				  .types               = LR11XX_WIFI_TYPE_SCAN_B_G_N,
+				  .max_results         = WIFI_MAX_RESULTS,
+				  .timeout_per_channel = WIFI_TIMEOUT_PER_CHANNEL_DEFAULT,
+				  .timeout_per_scan    = WIFI_TIMEOUT_PER_SCAN_DEFAULT };
 
 /*
  * -----------------------------------------------------------------------------
@@ -201,12 +201,12 @@ static void smtc_wifi_sort_results( wifi_scan_all_result_t* wifi_results );
  * --- PUBLIC FUNCTIONS DEFINITION ---------------------------------------------
  */
 void mw_wifi_scan_services_init( uint8_t* service_id, uint8_t task_id,
-                                 uint8_t ( **downlink_callback )( lr1_stack_mac_down_data_t* ),
-                                 void ( **on_launch_callback )( void* ), void ( **on_update_callback )( void* ),
-                                 void** context_callback )
+				 uint8_t ( **downlink_callback )( lr1_stack_mac_down_data_t* ),
+				 void ( **on_launch_callback )( void* ), void ( **on_update_callback )( void* ),
+				 void** context_callback )
 {
     SMTC_MODEM_HAL_TRACE_PRINTF( "mw_wifi_scan_services_init task_id %d, service_id %d, CURRENT_STACK:%d \n", task_id,
-                                 *service_id, CURRENT_STACK );
+				 *service_id, CURRENT_STACK );
 
     IS_VALID_OBJECT_ID( *service_id );
 
@@ -220,7 +220,7 @@ void mw_wifi_scan_services_init( uint8_t* service_id, uint8_t task_id,
     *on_update_callback          = mw_wifi_scan_service_on_update;
     *context_callback            = ( void* ) service_id;
     rp_hook_init( modem_get_rp( ), mw_wifi_task_obj.rp_hook_id, ( void ( * )( void* ) )( wifi_rp_task_done ),
-                  modem_get_rp( ) );
+		  modem_get_rp( ) );
 }
 
 smtc_modem_return_code_t mw_wifi_scan_add_task( uint32_t start_delay_s )
@@ -236,8 +236,8 @@ smtc_modem_return_code_t mw_wifi_scan_add_task( uint32_t start_delay_s )
     task.time_to_execute_s = now + start_delay_s;
     if( modem_supervisor_add_task( &task ) != TASK_VALID )
     {
-        SMTC_MODEM_HAL_TRACE_ERROR( "Failed to add Wi-Fi scan supervisor task\n" );
-        return SMTC_MODEM_RC_FAIL;
+	SMTC_MODEM_HAL_TRACE_ERROR( "Failed to add Wi-Fi scan supervisor task\n" );
+	return SMTC_MODEM_RC_FAIL;
     }
 
     /* Clear pending events */
@@ -254,14 +254,14 @@ smtc_modem_return_code_t mw_wifi_scan_remove_task( void )
 
     if( mw_wifi_task_obj.scan_sequence_started == true )
     {
-        SMTC_MODEM_HAL_TRACE_ERROR( "WIFI scan sequence started, too late to cancel\n" );
-        return SMTC_MODEM_RC_BUSY;
+	SMTC_MODEM_HAL_TRACE_ERROR( "WIFI scan sequence started, too late to cancel\n" );
+	return SMTC_MODEM_RC_BUSY;
     }
 
     if( modem_supervisor_remove_task( mw_wifi_task_obj.task_id ) != TASK_VALID )
     {
-        SMTC_MODEM_HAL_TRACE_ERROR( "Failed to remove Wi-Fi scan supervisor task\n" );
-        return SMTC_MODEM_RC_FAIL;
+	SMTC_MODEM_HAL_TRACE_ERROR( "Failed to remove Wi-Fi scan supervisor task\n" );
+	return SMTC_MODEM_RC_FAIL;
     }
 
     return SMTC_MODEM_RC_OK;
@@ -271,14 +271,14 @@ smtc_modem_return_code_t mw_wifi_get_event_data_scan_done( smtc_modem_wifi_event
 {
     if( data == NULL )
     {
-        SMTC_MODEM_HAL_TRACE_ERROR( "mw_wifi_get_event_data_scan_done: Provided pointer is NULL\n" );
-        return SMTC_MODEM_RC_INVALID;
+	SMTC_MODEM_HAL_TRACE_ERROR( "mw_wifi_get_event_data_scan_done: Provided pointer is NULL\n" );
+	return SMTC_MODEM_RC_INVALID;
     }
 
     if( mw_wifi_task_obj.pending_evt_scan_done == false )
     {
-        SMTC_MODEM_HAL_TRACE_ERROR( "mw_wifi_get_event_data_scan_done: no SCAN_DONE event pending\n" );
-        return SMTC_MODEM_RC_FAIL;
+	SMTC_MODEM_HAL_TRACE_ERROR( "mw_wifi_get_event_data_scan_done: no SCAN_DONE event pending\n" );
+	return SMTC_MODEM_RC_FAIL;
     }
 
     memcpy( data, &wifi_results, sizeof( smtc_modem_wifi_event_data_scan_done_t ) );
@@ -315,12 +315,12 @@ static void mw_wifi_scan_service_on_launch( void* context_callback )
     rp_radio_params_t fake_rp_radio_params = { 0 };
     if( rp_task_enqueue( modem_get_rp( ), &rp_task, NULL, 0, &fake_rp_radio_params ) != RP_HOOK_STATUS_OK )
     {
-        SMTC_MODEM_HAL_TRACE_ERROR( "Failed to enqueue RP task for Wi-Fi scan\n" );
-        SMTC_MODEM_HAL_PANIC( );
+	SMTC_MODEM_HAL_TRACE_ERROR( "Failed to enqueue RP task for Wi-Fi scan\n" );
+	SMTC_MODEM_HAL_PANIC( );
     }
     else
     {
-        SMTC_MODEM_HAL_TRACE_PRINTF( "Enqueued RP task for Wi-Fi scan (hook_id #%d)\n", rp_task.hook_id );
+	SMTC_MODEM_HAL_TRACE_PRINTF( "Enqueued RP task for Wi-Fi scan (hook_id #%d)\n", rp_task.hook_id );
     }
 }
 
@@ -342,30 +342,30 @@ static void trace_print_scan_results( const wifi_scan_all_result_t* results )
 {
     if( results != NULL )
     {
-        for( uint8_t i = 0; i < results->nbr_results; i++ )
-        {
-            for( uint8_t j = 0; j < WIFI_AP_ADDRESS_SIZE; j++ )
-            {
-                SMTC_MODEM_HAL_TRACE_PRINTF( "%02X ", results->results[i].mac_address[j] );
-            }
-            SMTC_MODEM_HAL_TRACE_PRINTF( " -- Channel: %d", results->results[i].channel );
-            SMTC_MODEM_HAL_TRACE_PRINTF( " -- Type: %d", results->results[i].type );
-            SMTC_MODEM_HAL_TRACE_PRINTF( " -- RSSI: %d", results->results[i].rssi );
-            SMTC_MODEM_HAL_TRACE_PRINTF( " -- Origin: " );
-            switch( results->results[i].origin )
-            {
-            case LR11XX_WIFI_ORIGIN_BEACON_FIX_AP:
-                SMTC_MODEM_HAL_TRACE_PRINTF( "FIXED\n" );
-                break;
-            case LR11XX_WIFI_ORIGIN_BEACON_MOBILE_AP:
-                SMTC_MODEM_HAL_TRACE_PRINTF( "MOBILE\n" );
-                break;
-            default:
-                SMTC_MODEM_HAL_TRACE_PRINTF( "UNKNOWN\n" );
-                break;
-            }
-        }
-        SMTC_MODEM_HAL_TRACE_PRINTF( "\n" );
+	for( uint8_t i = 0; i < results->nbr_results; i++ )
+	{
+	    for( uint8_t j = 0; j < WIFI_AP_ADDRESS_SIZE; j++ )
+	    {
+		SMTC_MODEM_HAL_TRACE_PRINTF( "%02X ", results->results[i].mac_address[j] );
+	    }
+	    SMTC_MODEM_HAL_TRACE_PRINTF( " -- Channel: %d", results->results[i].channel );
+	    SMTC_MODEM_HAL_TRACE_PRINTF( " -- Type: %d", results->results[i].type );
+	    SMTC_MODEM_HAL_TRACE_PRINTF( " -- RSSI: %d", results->results[i].rssi );
+	    SMTC_MODEM_HAL_TRACE_PRINTF( " -- Origin: " );
+	    switch( results->results[i].origin )
+	    {
+	    case LR11XX_WIFI_ORIGIN_BEACON_FIX_AP:
+		SMTC_MODEM_HAL_TRACE_PRINTF( "FIXED\n" );
+		break;
+	    case LR11XX_WIFI_ORIGIN_BEACON_MOBILE_AP:
+		SMTC_MODEM_HAL_TRACE_PRINTF( "MOBILE\n" );
+		break;
+	    default:
+		SMTC_MODEM_HAL_TRACE_PRINTF( "UNKNOWN\n" );
+		break;
+	    }
+	}
+	SMTC_MODEM_HAL_TRACE_PRINTF( "\n" );
     }
 }
 
@@ -373,11 +373,11 @@ static void trace_print_event_data_scan_done( const smtc_modem_wifi_event_data_s
 {
     if( data != NULL )
     {
-        SMTC_MODEM_HAL_TRACE_PRINTF( "SCAN_DONE info:\n" );
-        SMTC_MODEM_HAL_TRACE_PRINTF( "-- number of results: %u\n", data->nbr_results );
-        SMTC_MODEM_HAL_TRACE_PRINTF( "-- power consumption: %u nah\n", data->power_consumption_nah );
-        SMTC_MODEM_HAL_TRACE_PRINTF( "-- scan duration: %u ms\n", data->scan_duration_ms );
-        trace_print_scan_results( data );
+	SMTC_MODEM_HAL_TRACE_PRINTF( "SCAN_DONE info:\n" );
+	SMTC_MODEM_HAL_TRACE_PRINTF( "-- number of results: %u\n", data->nbr_results );
+	SMTC_MODEM_HAL_TRACE_PRINTF( "-- power consumption: %u nah\n", data->power_consumption_nah );
+	SMTC_MODEM_HAL_TRACE_PRINTF( "-- scan duration: %u ms\n", data->scan_duration_ms );
+	trace_print_scan_results( data );
     }
 }
 
@@ -391,9 +391,9 @@ static void wifi_rp_task_launch( void* context )
 
     if( mw_radio_configure_for_scan( modem_get_radio_ctx( ) ) == false )
     {
-        SMTC_MODEM_HAL_TRACE_ERROR( "gnss_rp_task_launch: mw_radio_configure_for_scan() failed\n" );
-        rp_task_abort( modem_get_rp( ), RP_HOOK_ID_DIRECT_RP_ACCESS_WIFI );
-        return;
+	SMTC_MODEM_HAL_TRACE_ERROR( "gnss_rp_task_launch: mw_radio_configure_for_scan() failed\n" );
+	rp_task_abort( modem_get_rp( ), RP_HOOK_ID_DIRECT_RP_ACCESS_WIFI );
+	return;
     }
 
     /* Set Wi-Fi scan settings */
@@ -402,10 +402,10 @@ static void wifi_rp_task_launch( void* context )
     /* Start Wi-Fi scan */
     if( smtc_wifi_start_scan( modem_get_radio_ctx( ) ) != MW_RC_OK )
     {
-        SMTC_MODEM_HAL_TRACE_ERROR( "RP_TASK_WIFI - failed to start Wi-Fi scan, abort task\n" );
-        rp_task_abort( modem_get_rp( ), RP_HOOK_ID_DIRECT_RP_ACCESS_WIFI );
-        /* When aborting the task, the RP will call the end_task_callback() with SMTC_RP_RADIO_ABORTED status. */
-        return;
+	SMTC_MODEM_HAL_TRACE_ERROR( "RP_TASK_WIFI - failed to start Wi-Fi scan, abort task\n" );
+	rp_task_abort( modem_get_rp( ), RP_HOOK_ID_DIRECT_RP_ACCESS_WIFI );
+	/* When aborting the task, the RP will call the end_task_callback() with SMTC_RP_RADIO_ABORTED status. */
+	return;
     }
 }
 
@@ -413,50 +413,58 @@ static void wifi_rp_task_done( void* status )
 {
     uint32_t    tcurrent_ms;
     rp_status_t rp_status;
+   printk("%s %d (from %p) \n", __func__,__LINE__, __builtin_return_address(0) );
 
     mw_wifi_task_obj.scan_end_time = smtc_modem_hal_get_time_in_ms( );
     SMTC_MODEM_HAL_TRACE_INFO( "wifi_rp_task_done at %u (duration:%d ms)\n", mw_wifi_task_obj.scan_end_time,
-                               mw_wifi_task_obj.scan_end_time - mw_wifi_task_obj.scan_start_time );
+			       mw_wifi_task_obj.scan_end_time - mw_wifi_task_obj.scan_start_time );
 
     /* WIFI scan completed or aborted - first thing to be done */
     smtc_wifi_scan_ended( );
+   printk("%s %d (from %p) \n", __func__,__LINE__, __builtin_return_address(0) );
 
     rp_get_status( ( radio_planner_t* ) status, mw_wifi_task_obj.rp_hook_id, &tcurrent_ms, &rp_status );
+
+    printk("%s %d rps: %x (from %p) \n", __func__,__LINE__, rp_status,  __builtin_return_address(0) );
     if( rp_status == RP_STATUS_TASK_ABORTED )
     {
-        /**/
-        /* Do not perform any radio access here */
-        /**/
+   printk("%s %d (from %p) \n", __func__,__LINE__, __builtin_return_address(0) );
+	/**/
+	/* Do not perform any radio access here */
+	/**/
 
-        SMTC_MODEM_HAL_TRACE_WARNING( "Wi-Fi: RP_STATUS_TASK_ABORTED\n" );
-        send_event( SMTC_MODEM_EVENT_WIFI_SCAN_DONE );
-        send_event( SMTC_MODEM_EVENT_WIFI_TERMINATED );
-        return;
+	SMTC_MODEM_HAL_TRACE_WARNING( "Wi-Fi: RP_STATUS_TASK_ABORTED\n" );
+	send_event( SMTC_MODEM_EVENT_WIFI_SCAN_DONE );
+	send_event( SMTC_MODEM_EVENT_WIFI_TERMINATED );
+	return;
     }
     else if( rp_status == RP_STATUS_WIFI_SCAN_DONE )
     {
-        wifi_results.scan_duration_ms = mw_wifi_task_obj.scan_end_time - mw_wifi_task_obj.scan_start_time;
+   printk("%s %d (from %p) \n", __func__,__LINE__, __builtin_return_address(0) );
+	wifi_results.scan_duration_ms = mw_wifi_task_obj.scan_end_time - mw_wifi_task_obj.scan_start_time;
 
-        /* Get results */
-        wifi_scan_task_done( );
+	/* Get results */
+	wifi_scan_task_done( );
 
-        /* Set the radio back to sleep when all radio accesses are done */
-        mw_radio_set_sleep( modem_get_radio_ctx( ) );
+	/* Set the radio back to sleep when all radio accesses are done */
+	mw_radio_set_sleep( modem_get_radio_ctx( ) );
 
-        /* Notify application */
-        send_event( SMTC_MODEM_EVENT_WIFI_SCAN_DONE );
+	/* Notify application */
+	send_event( SMTC_MODEM_EVENT_WIFI_SCAN_DONE );
 
-        /* Send results over LoRaWAN */
-        mw_wifi_send_add_task( &wifi_results );
+   printk("%s %d AAAAAAAAAAAAAAAAAAAAAAAAAAA (from %p) \n", __func__,__LINE__, __builtin_return_address(0) );
+	/* Send results over LoRaWAN */
+	mw_wifi_send_add_task( &wifi_results );
 
-        /* The scan sequence has completed */
-        mw_wifi_task_obj.scan_sequence_started = false;
+	/* The scan sequence has completed */
+	mw_wifi_task_obj.scan_sequence_started = false;
     }
     else
     {
-        /* Should not happen */
-        SMTC_MODEM_HAL_TRACE_ERROR( "Wi-Fi RP task - Unknown status %d\n", rp_status );
-        SMTC_MODEM_HAL_PANIC( "Unexpected RP status" );
+   printk("%s %d (from %p) \n", __func__,__LINE__, __builtin_return_address(0) );
+	/* Should not happen */
+	SMTC_MODEM_HAL_TRACE_ERROR( "Wi-Fi RP task - Unknown status %d\n", rp_status );
+	SMTC_MODEM_HAL_PANIC( "Unexpected RP status" );
     }
 }
 
@@ -464,18 +472,24 @@ static void wifi_scan_task_done( void )
 {
     /* Wi-Fi scan completed, get and display the results */
     smtc_wifi_get_results( modem_get_radio_ctx( ), &wifi_results );
+    printk("%s %d nbr_resuls: %d (from %p) \n", __func__,__LINE__, wifi_results.nbr_results, __builtin_return_address(0) );
 
     /* Get scan power consumption */
     smtc_wifi_get_power_consumption( modem_get_radio_ctx( ), &wifi_results.power_consumption_nah );
+    printk("%s %d nbr_resuls: %d (from %p) \n", __func__,__LINE__, wifi_results.nbr_results, __builtin_return_address(0) );
 
     /* Sort results */
     smtc_wifi_sort_results( &wifi_results );
+    printk("%s %d nbr_resuls: %d (from %p) \n", __func__,__LINE__, wifi_results.nbr_results, __builtin_return_address(0) );
 }
 
 static void smtc_wifi_sort_results( wifi_scan_all_result_t* wifi_results )
 {
     uint8_t                nb_results_sort = 0;
     wifi_scan_all_result_t wifi_results_tmp;
+
+    printk("%s %d nbr_resuls: %d (from %p) \n", __func__,__LINE__,
+	   wifi_results->nbr_results, __builtin_return_address(0) );
 
     WIFI_SCAN_TRACE_PRINTF_DEBUG( "Filter and Sort Wi-Fi results:\n" );
 
@@ -488,61 +502,71 @@ static void smtc_wifi_sort_results( wifi_scan_all_result_t* wifi_results )
     /* Remove AP */
     for( uint8_t index = 0; index < wifi_results->nbr_results; index++ )
     {
-        if( wifi_results->results[index].origin == LR11XX_WIFI_ORIGIN_BEACON_FIX_AP )
-        {
-            wifi_results_tmp.results[nb_results_sort] = wifi_results->results[index];
-            nb_results_sort++;
-        }
+       printk("%s %d index: %d origin: %x FIX: %x (from %p) \n",
+	      __func__,__LINE__,
+	      index,
+	      wifi_results->results[index].origin,
+	      LR11XX_WIFI_ORIGIN_BEACON_FIX_AP,
+	      __builtin_return_address(0) );
+
+	if( wifi_results->results[index].origin == LR11XX_WIFI_ORIGIN_BEACON_FIX_AP )
+	{
+	    wifi_results_tmp.results[nb_results_sort] = wifi_results->results[index];
+	    nb_results_sort++;
+	}
     }
 
     /* Update main structure */
     for( uint8_t index = 0; index < nb_results_sort; index++ )
     {
-        wifi_results->results[index] = wifi_results_tmp.results[index];
+	wifi_results->results[index] = wifi_results_tmp.results[index];
     }
 
     if( wifi_results->nbr_results != nb_results_sort )
     {
-        wifi_results->nbr_results = nb_results_sort;
+	wifi_results->nbr_results = nb_results_sort;
 
-        /* FILTERED data */
+	/* FILTERED data */
 #if WIFI_SCAN_DEEP_DBG_TRACE == MODEM_HAL_FEATURE_ON
-        SMTC_MODEM_HAL_TRACE_PRINTF( "filtered data:\n" );
-        trace_print_scan_results( wifi_results );
+	SMTC_MODEM_HAL_TRACE_PRINTF( "filtered data:\n" );
+	trace_print_scan_results( wifi_results );
 #endif
     }
     else
     {
-        WIFI_SCAN_TRACE_PRINTF_DEBUG( "Nothing to filter\n" );
+	WIFI_SCAN_TRACE_PRINTF_DEBUG( "Nothing to filter\n" );
     }
+
+    printk("%s %d nbr_resuls: %d (from %p) \n", __func__,__LINE__, wifi_results->nbr_results, __builtin_return_address(0) );
 
     /* remove extra point if there are */
     if( wifi_results->nbr_results > WIFI_MAX_RESULTS_TO_SEND )
     {
-        int i, j;
-        for( i = 0; i < wifi_results->nbr_results - 1; i++ )
-        {
-            for( j = i + 1; j < wifi_results->nbr_results; j++ )
-            {
-                if( wifi_results->results[i].rssi < wifi_results->results[j].rssi )
-                {
-                    wifi_results_tmp.results[0] = wifi_results->results[i];
-                    wifi_results->results[i]    = wifi_results->results[j];
-                    wifi_results->results[j]    = wifi_results_tmp.results[0];
-                }
-            }
-        }
-        wifi_results->nbr_results = WIFI_MAX_RESULTS_TO_SEND;
+	int i, j;
+	for( i = 0; i < wifi_results->nbr_results - 1; i++ )
+	{
+	    for( j = i + 1; j < wifi_results->nbr_results; j++ )
+	    {
+		if( wifi_results->results[i].rssi < wifi_results->results[j].rssi )
+		{
+		    wifi_results_tmp.results[0] = wifi_results->results[i];
+		    wifi_results->results[i]    = wifi_results->results[j];
+		    wifi_results->results[j]    = wifi_results_tmp.results[0];
+		}
+	    }
+	}
+	wifi_results->nbr_results = WIFI_MAX_RESULTS_TO_SEND;
 
-        /* SORTED data */
+	/* SORTED data */
 #if WIFI_SCAN_DEEP_DBG_TRACE == MODEM_HAL_FEATURE_ON
-        SMTC_MODEM_HAL_TRACE_PRINTF( "Sorted data:\n" );
-        trace_print_scan_results( wifi_results );
+	SMTC_MODEM_HAL_TRACE_PRINTF( "Sorted data:\n" );
+	trace_print_scan_results( wifi_results );
 #endif
     }
     else
     {
-        WIFI_SCAN_TRACE_PRINTF_DEBUG( "Nothing to sort\n" );
+       printk("%s %d nothing to sort (from %p) \n", __func__,__LINE__, __builtin_return_address(0) );
+	WIFI_SCAN_TRACE_PRINTF_DEBUG( "Nothing to sort\n" );
     }
 }
 
@@ -550,7 +574,7 @@ static void send_event( smtc_modem_event_type_t event )
 {
     if( event == SMTC_MODEM_EVENT_WIFI_SCAN_DONE )
     {
-        mw_wifi_task_obj.pending_evt_scan_done = true;
+	mw_wifi_task_obj.pending_evt_scan_done = true;
     }
     increment_asynchronous_msgnumber( event, 0, mw_wifi_task_obj.stack_id );
 }

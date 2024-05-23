@@ -36,7 +36,7 @@
  * -----------------------------------------------------------------------------
  * --- DEPENDENCIES ------------------------------------------------------------
  */
-
+#include <zephyr/kernel.h>
 #include <string.h>
 
 #include "smtc_modem_hal_dbg_trace.h"
@@ -95,22 +95,22 @@ mw_return_code_t smtc_wifi_start_scan( const void* radio_context )
     lr11xx_status_t status;
 
     MW_RETURN_ON_FAILURE( lr11xx_system_set_dio_irq_params( radio_context, LR11XX_SYSTEM_IRQ_WIFI_SCAN_DONE,
-                                                            LR11XX_SYSTEM_IRQ_NONE ) == LR11XX_STATUS_OK );
+							    LR11XX_SYSTEM_IRQ_NONE ) == LR11XX_STATUS_OK );
 
     MW_RETURN_ON_FAILURE( lr11xx_wifi_cfg_timestamp_ap_phone( radio_context, TIMESTAMP_AP_PHONE_FILTERING ) ==
-                          LR11XX_STATUS_OK );
+			  LR11XX_STATUS_OK );
 
     /* Enable Wi-Fi path */
     geolocation_bsp_wifi_prescan_actions( );
 
     status = lr11xx_wifi_scan_time_limit( radio_context, settings.types, settings.channels,
-                                          LR11XX_WIFI_SCAN_MODE_BEACON_AND_PKT, settings.max_results,
-                                          settings.timeout_per_channel, settings.timeout_per_scan );
+					  LR11XX_WIFI_SCAN_MODE_BEACON_AND_PKT, settings.max_results,
+					  settings.timeout_per_channel, settings.timeout_per_scan );
     if( status != LR11XX_STATUS_OK )
     {
-        SMTC_MODEM_HAL_TRACE_ERROR( "Failed to start Wi-Fi scan\n" );
-        geolocation_bsp_wifi_postscan_actions( );
-        return MW_RC_FAILED;
+	SMTC_MODEM_HAL_TRACE_ERROR( "Failed to start Wi-Fi scan\n" );
+	geolocation_bsp_wifi_postscan_actions( );
+	return MW_RC_FAILED;
     }
 
     return MW_RC_OK;
@@ -131,36 +131,38 @@ mw_return_code_t smtc_wifi_get_results( const void* radio_context, wifi_scan_all
 
     MW_RETURN_ON_FAILURE( lr11xx_wifi_get_nb_results( radio_context, &nb_results ) == LR11XX_STATUS_OK );
 
+    printk("%s %d nb_results: %d \n", __func__,__LINE__, nb_results );
+
     /* check if the array is big enough to hold all results */
     max_nb_results = sizeof( wifi_results_mac_addr ) / sizeof( wifi_results_mac_addr[0] );
     if( nb_results > max_nb_results )
     {
-        SMTC_MODEM_HAL_TRACE_ERROR( "Wi-Fi scan result size exceeds %u (%u)\n", max_nb_results, nb_results );
-        return MW_RC_FAILED;
+	SMTC_MODEM_HAL_TRACE_ERROR( "Wi-Fi scan result size exceeds %u (%u)\n", max_nb_results, nb_results );
+	return MW_RC_FAILED;
     }
 
     MW_RETURN_ON_FAILURE( lr11xx_wifi_read_basic_complete_results( radio_context, 0, nb_results,
-                                                                   wifi_results_mac_addr ) == LR11XX_STATUS_OK );
+								   wifi_results_mac_addr ) == LR11XX_STATUS_OK );
 
     /* add scan to results */
     for( uint8_t index = 0; index < nb_results; index++ )
     {
-        const lr11xx_wifi_basic_complete_result_t* local_basic_result = &wifi_results_mac_addr[index];
-        lr11xx_wifi_channel_t                      channel;
-        bool                                       rssi_validity;
-        lr11xx_wifi_mac_origin_t                   mac_origin_estimation;
+	const lr11xx_wifi_basic_complete_result_t* local_basic_result = &wifi_results_mac_addr[index];
+	lr11xx_wifi_channel_t                      channel;
+	bool                                       rssi_validity;
+	lr11xx_wifi_mac_origin_t                   mac_origin_estimation;
 
-        lr11xx_wifi_parse_channel_info( local_basic_result->channel_info_byte, &channel, &rssi_validity,
-                                        &mac_origin_estimation );
+	lr11xx_wifi_parse_channel_info( local_basic_result->channel_info_byte, &channel, &rssi_validity,
+					&mac_origin_estimation );
 
-        wifi_results->results[index].channel = channel;
-        wifi_results->results[index].origin  = mac_origin_estimation;
-        wifi_results->results[index].type =
-            lr11xx_wifi_extract_signal_type_from_data_rate_info( local_basic_result->data_rate_info_byte );
-        memcpy( wifi_results->results[index].mac_address, local_basic_result->mac_address,
-                LR11XX_WIFI_MAC_ADDRESS_LENGTH );
-        wifi_results->results[index].rssi = local_basic_result->rssi;
-        wifi_results->nbr_results++;
+	wifi_results->results[index].channel = channel;
+	wifi_results->results[index].origin  = mac_origin_estimation;
+	wifi_results->results[index].type =
+	    lr11xx_wifi_extract_signal_type_from_data_rate_info( local_basic_result->data_rate_info_byte );
+	memcpy( wifi_results->results[index].mac_address, local_basic_result->mac_address,
+		LR11XX_WIFI_MAC_ADDRESS_LENGTH );
+	wifi_results->results[index].rssi = local_basic_result->rssi;
+	wifi_results->nbr_results++;
     }
 
     return MW_RC_OK;
